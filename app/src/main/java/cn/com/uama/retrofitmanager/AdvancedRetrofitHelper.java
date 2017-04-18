@@ -46,7 +46,7 @@ public class AdvancedRetrofitHelper {
 
     /**
      * 取消 context 下的所有 call
-     * 一定要在 Activity 或者 Fragment 的 onDestroy() 里调用该方法
+     * 如果有需要，在 Activity 或者 Fragment 的 onDestroy() 里调用该方法
      */
     public static void cancelCalls(Context context) {
         List<Call> calls = callMap.get(context);
@@ -61,7 +61,8 @@ public class AdvancedRetrofitHelper {
     }
 
     /**
-     * 从 callMap 中移除 context，主要是为了防止内存溢出
+     * 从 callMap 中移除 context，主要是为了防止内存泄露
+     * 如果没有调用 {@link #cancelCalls(Context)}，一定要
      */
     public static void remove(Context context) {
         callMap.remove(context);

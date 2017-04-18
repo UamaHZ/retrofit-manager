@@ -11,6 +11,13 @@ import okhttp3.Interceptor;
  */
 
 public interface RetrofitProvider {
+    /**
+     * 提供 Retrofit 所需要的 base url
+     */
     String provideBaseUrl();
+
+    /**
+     * 提供一些需要的 interceptor，设置给 okhttp client
+     */
     List<Interceptor> provideInterceptors();
 }
