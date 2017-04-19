@@ -5,7 +5,7 @@
 * 统一处理 status 的判断，并在自定义接口中回调
 * 提供统一的取消（对应某个 Context 的）所有网络请求的便捷方法
 
-## 类介绍
+## 主要类介绍
 
 ### RetrofitManager
 
@@ -59,9 +59,7 @@ public class TERetrofitCallback<T> extends SimpleRetrofitCallback<T> {
 
 提供 `enqueue` 方法对 `retrofit2.Call<T>.enqueue(retrofit2.Callback<T>)` 的调用进行封装，在 `retrofit2.Callback<T>` 的回调方法中统一处理 status ，并将对应的结果回调到我们的 `AdvancedRetrofitCallback` 接口的回调方法中。
 
-维护了一个 `Map` 对象，用于缓存针对某个 `context` 的 `call` 对象列表，凡是放到该 `Map` 中的 `call` 都可以通过 `cancelCalls(Context)` 方法取消某个 `context` 下的所有 `call`。初衷是方便在 `activity` 的 `onDestroy` 方法或者 `fragment` 的 `onDestroyView` 方法中取消所有尚未执行完毕的 `call` 。可以通过 `enqueue` 的重载 (overload) 方法选择是否将某个 `call` 放到这个 `Map` 中。
-
-如果没有在适当的时候调用 `cancelCalls(Context)` 方法，一定要调用 `remove(Context)` 方法，防止内存泄露。
+维护了两个 `WeakHashMap` 对象，用于缓存针对某个 `context` 或 `fragment` 的 `call` 对象列表，凡是放到缓存 `map` 中的 `call` 都可以通过 `cancelCalls()` 方法取消某个 `context` 或 `fragment` 下的所有 `call`。初衷是方便在 `activity` 的 `onDestroy` 方法或者 `fragment` 的 `onDestroyView` 方法中取消所有尚未执行完毕的 `call` 。可以通过 `enqueue` 的重载 (overload) 方法选择是否将某个 `call` 放到缓存 `map` 中。
 
 ## 用法示例
 
@@ -108,7 +106,12 @@ public void onDestroy() {
 }
 ```
 
+## 注意
+
+**bean 包下定义了一些通用的实体类。在自己的项目中定义接口访问的实体类时，一定要继承 `BaseResp` ，推荐使用 `SimpleResp` 和 `SimplePagedResp` 。**
+
 ## TODO
-- [ ] 在 Fragment 的 onDestroyView 方法中调用 AdvancedRetrofitHelper.cancelCalls(Context) 方法，有可能将同一个 Activity 下的正在显示界面的 Fragment 的 call 取消
+
+- [x] 在 Fragment 的 onDestroyView 方法中调用 AdvancedRetrofitHelper.cancelCalls(Context) 方法，有可能将同一个 Activity 下的正在显示界面的 Fragment 的 call 取消
 
 [1]: https://github.com/square/retrofit
