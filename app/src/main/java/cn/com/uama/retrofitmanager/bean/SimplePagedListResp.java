@@ -6,7 +6,7 @@ package cn.com.uama.retrofitmanager.bean;
  * Description: 通用的分页列表实体类
  */
 
-public class SimplePagedResp<T> extends BaseResp {
+public class SimplePagedListResp<T> extends BaseResp {
     private PagedBean<T> data;
 
     public PagedBean<T> getData() {

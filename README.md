@@ -108,7 +108,7 @@ public void onDestroy() {
 
 ## 注意
 
-**bean 包下定义了一些通用的实体类。在自己的项目中定义接口访问的实体类时，一定要继承 `BaseResp` ，推荐使用 `SimpleResp` 和 `SimplePagedResp` 。**
+**bean 包下定义了一些通用的实体类。在自己的项目中定义接口访问的实体类时，一定要继承 `BaseResp` ，推荐使用 `SimpleResp` ，`SimpleListResp` 和 `SimplePagedListResp` 。详情参考类的实现。**
 
 ## TODO
 
