@@ -168,6 +168,9 @@ public class AdvancedRetrofitHelper {
                             callback.onTokenExpired(context, msg);
                         }
                     } else {
+                        if (TextUtils.isEmpty(msg)) {
+                            msg = "服务器数据异常，请稍后再试";
+                        }
                         if (callback != null) {
                             callback.onError(call, msg);
                         }
