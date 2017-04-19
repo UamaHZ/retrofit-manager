@@ -21,9 +21,9 @@ public class RetrofitManager {
 
     private static final String TAG = "RetrofitManager";
 
-    private static final int CONNECT_TIMEOUT = 30;
-    private static final int READ_TIMEOUT = 30;
-    private static final int WRITE_TIMEOUT = 30;
+    static final int DEFAULT_CONNECT_TIMEOUT = 30;
+    static final int DEFAULT_READ_TIMEOUT = 30;
+    static final int DEFAULT_WRITE_TIMEOUT = 30;
 
     private static Retrofit retrofit;
 
@@ -35,20 +35,15 @@ public class RetrofitManager {
         retrofit = new Retrofit.Builder()
                 .baseUrl(provider.provideBaseUrl())
                 .addConverterFactory(GsonConverterFactory.create())
-                .client(buildClient(provider.provideInterceptors()))
+                .client(buildClient(provider.provideOkhttpConfig()))
                 .build();
     }
 
     /**
      * 创建配置好的 OkhttpClient
      */
-    private static OkHttpClient buildClient(List<Interceptor> interceptors) {
+    private static OkHttpClient buildClient(OkhttpConfiguration config) {
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
-        // 添加提供的拦截器
-        for (int i = 0; interceptors != null && i < interceptors.size(); i++) {
-            interceptors.get(i);
-            clientBuilder.addInterceptor(interceptors.get(i));
-        }
         // 日志拦截器拦截所有返回数据
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
         // 如果是 debug 就 log 所有数据，否则不 log
@@ -58,13 +53,40 @@ public class RetrofitManager {
             loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.NONE);
         }
         clientBuilder.addInterceptor(loggingInterceptor);
-        // 连接超时
-        clientBuilder.connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS);
-        // 读取超时
-        clientBuilder.readTimeout(READ_TIMEOUT, TimeUnit.SECONDS);
-        // 写入超时
-        clientBuilder.writeTimeout(WRITE_TIMEOUT, TimeUnit.SECONDS);
+        if (config != null) {
+            List<Interceptor> interceptors = config.interceptors();
+            // 添加提供的拦截器
+            for (int i = 0; interceptors != null && i < interceptors.size(); i++) {
+                interceptors.get(i);
+                clientBuilder.addInterceptor(interceptors.get(i));
+            }
+            // 连接超时
+            int connectTimeoutSeconds = config.connectTimeoutSeconds();
+            if (!isTimeoutValueValid(connectTimeoutSeconds)) {
+                throw new RuntimeException("connect timeout must be between 0 and Integer.MAX_VALUE in milliseconds.");
+            }
+            clientBuilder.connectTimeout(connectTimeoutSeconds, TimeUnit.SECONDS);
+            // 读取超时
+            int readTimeoutSeconds = config.readTimeoutSeconds();
+            if (!isTimeoutValueValid(readTimeoutSeconds)) {
+                throw new RuntimeException("read timeout must be between 0 and Integer.MAX_VALUE in milliseconds.");
+            }
+            clientBuilder.readTimeout(readTimeoutSeconds, TimeUnit.SECONDS);
+            // 写入超时
+            int writeTimeoutSeconds = config.writeTimeoutSeconds();
+            if (!isTimeoutValueValid(writeTimeoutSeconds)) {
+                throw new RuntimeException("write timeout must be between 0 and Integer.MAX_VALUE in milliseconds.");
+            }
+            clientBuilder.writeTimeout(writeTimeoutSeconds, TimeUnit.SECONDS);
+        }
         return clientBuilder.build();
+    }
+
+    /**
+     * 超时值是否在合理范围内
+     */
+    private static boolean isTimeoutValueValid(int timeout) {
+        return timeout * 1000 >=0 && timeout * 1000 <= Integer.MAX_VALUE;
     }
 
     /**
