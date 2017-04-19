@@ -19,9 +19,9 @@ public interface RetrofitProvider {
     String provideBaseUrl();
 
     /**
-     * 提供一些需要的 interceptor，设置给 okhttp client
+     * 提供配置项，设置给 okhttp client
      */
-    List<Interceptor> provideInterceptors();
+    OkhttpConfiguration provideOkhttpConfig();
 }
 ```
 
@@ -62,6 +62,55 @@ public class TERetrofitCallback<T> extends SimpleRetrofitCallback<T> {
 维护了两个 `WeakHashMap` 对象，用于缓存针对某个 `context` 或 `fragment` 的 `call` 对象列表，凡是放到缓存 `map` 中的 `call` 都可以通过 `cancelCalls()` 方法取消某个 `context` 或 `fragment` 下的所有 `call`。初衷是方便在 `activity` 的 `onDestroy` 方法或者 `fragment` 的 `onDestroyView` 方法中取消所有尚未执行完毕的 `call` 。可以通过 `enqueue` 的重载 (overload) 方法选择是否将某个 `call` 放到缓存 `map` 中。
 
 ## 用法示例
+
+初始化：
+
+```java
+public class CustomApplication extends Application implements RetrofitProvider {
+  	@Override
+    public void onCreate() {
+        super.onCreate();
+      	RetrofitManager.init(this);
+    }
+  
+  	@Override
+    public String provideBaseUrl() {
+        return UrlConstant.BASE_URL + UrlConstant.API_VERSION;
+    }
+
+    @Override
+    public OkhttpConfiguration provideOkhttpConfig() {
+        return new SimpleOkhttpConfiguration() {
+            @Override
+            public List<Interceptor> interceptors() {
+                List<Interceptor> interceptors = new ArrayList<>();
+                interceptors.add(new CommonHeadersInterceptor());
+                return interceptors;
+            }
+          
+          	@Override
+            public int connectTimeoutSeconds() {
+                // 需要的时候复写
+                return 30;
+            }
+
+            @Override
+            public int readTimeoutSeconds() {
+                // 需要的时候复写
+                return 30;
+            }
+
+            @Override
+            public int writeTimeoutSeconds() {
+                // 需要的时候复写
+                return 30;
+            }
+        };
+    }
+}
+```
+
+
 
 定义一个 [Retrofit][1] 的 API service 接口：
 
