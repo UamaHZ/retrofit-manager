@@ -2,7 +2,6 @@ package cn.com.uama.retrofitmanager;
 
 import android.content.Context;
 import android.support.v4.app.Fragment;
-import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +22,7 @@ public class AdvancedRetrofitHelper {
 
     private static final String SUCCESS = "100";
     private static final String TOKEN_EXPIRED = "102";
+    private static final String FAILURE = "-1";
 
     /**
      * 将 context 中的 call 放到 contextCallMap 中，
@@ -161,23 +161,17 @@ public class AdvancedRetrofitHelper {
                             callback.onSuccess(call, body);
                         }
                     } else if (status.equals(TOKEN_EXPIRED)) { // token失效
-                        if (TextUtils.isEmpty(msg)) {
-                            msg = "账号已失效,请重新登录";
-                        }
                         if (callback != null) {
                             callback.onTokenExpired(context, msg);
                         }
                     } else {
-                        if (TextUtils.isEmpty(msg)) {
-                            msg = "服务器数据异常，请稍后再试";
-                        }
                         if (callback != null) {
-                            callback.onError(call, msg);
+                            callback.onError(call, status, msg);
                         }
                     }
                 } else {
                     if (callback != null) {
-                        callback.onError(call, "服务器数据异常，请稍后再试");
+                        callback.onError(call, String.valueOf(response.code()), null);
                     }
                 }
             }
@@ -190,7 +184,7 @@ public class AdvancedRetrofitHelper {
                 if (call.isCanceled()) return;
                 if (callback != null) {
                     t.printStackTrace();
-                    callback.onError(call, "服务器数据异常，请稍后再试");
+                    callback.onError(call, FAILURE, null);
                 }
             }
         });

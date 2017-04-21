@@ -12,7 +12,7 @@ import retrofit2.Call;
 
 public interface AdvancedRetrofitCallback<T> {
     void onSuccess(Call<T> call, T resp);
-    void onError(Call<T> call, String error);
-    void onTokenExpired(Context context, String message);
+    void onError(Call<T> call, String errorCode, String msg);
+    void onTokenExpired(Context context, String msg);
     void onEnd();
 }

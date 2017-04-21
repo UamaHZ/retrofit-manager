@@ -18,12 +18,12 @@ public class SimpleRetrofitCallback<T> implements AdvancedRetrofitCallback<T> {
     }
 
     @Override
-    public void onError(Call<T> call, String error) {
+    public void onError(Call<T> call, String errorCode, String msg) {
         // do nothing
     }
 
     @Override
-    public void onTokenExpired(Context context, String message) {
+    public void onTokenExpired(Context context, String msg) {
         // do nothing
     }
 

@@ -72,7 +72,7 @@ public class CustomApplication extends Application implements RetrofitProvider {
         super.onCreate();
       	RetrofitManager.init(this);
     }
-  
+
   	@Override
     public String provideBaseUrl() {
         return UrlConstant.BASE_URL + UrlConstant.API_VERSION;
@@ -87,7 +87,7 @@ public class CustomApplication extends Application implements RetrofitProvider {
                 interceptors.add(new CommonHeadersInterceptor());
                 return interceptors;
             }
-          
+
           	@Override
             public int connectTimeoutSeconds() {
                 // 需要的时候复写
@@ -134,7 +134,7 @@ AdvancedRetrofitHelper.enqueue(mContext,
 					}
 
 					@Override
-					public void onError(Call<SimpleResp<SignInfoBean>> call, String error) {
+					public void onError(Call<SimpleResp<SignInfoBean>> call, String errorCode, String msg) {
 						...
 					}
 
