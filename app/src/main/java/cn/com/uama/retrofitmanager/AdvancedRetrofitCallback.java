@@ -1,7 +1,5 @@
 package cn.com.uama.retrofitmanager;
 
-import android.content.Context;
-
 import retrofit2.Call;
 
 /**
@@ -13,6 +11,5 @@ import retrofit2.Call;
 public interface AdvancedRetrofitCallback<T> {
     void onSuccess(Call<T> call, T resp);
     void onError(Call<T> call, String errorCode, String msg);
-    void onTokenExpired(Context context, String msg);
-    void onEnd();
+    void onEnd(Call<T> call);
 }

@@ -1,7 +1,5 @@
 package cn.com.uama.retrofitmanager;
 
-import android.content.Context;
-
 import retrofit2.Call;
 
 /**
@@ -23,12 +21,7 @@ public class SimpleRetrofitCallback<T> implements AdvancedRetrofitCallback<T> {
     }
 
     @Override
-    public void onTokenExpired(Context context, String msg) {
-        // do nothing
-    }
-
-    @Override
-    public void onEnd() {
+    public void onEnd(Call<T> call) {
         // do nothing
         // 该回调方法主要用在进行接口访问前显示进度对话框的情况下，在最后取消显示对话框
     }

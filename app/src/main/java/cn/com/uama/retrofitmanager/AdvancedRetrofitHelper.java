@@ -21,7 +21,6 @@ import retrofit2.Response;
 public class AdvancedRetrofitHelper {
 
     private static final String SUCCESS = "100";
-    private static final String TOKEN_EXPIRED = "102";
     private static final String FAILURE = "-1";
 
     /**
@@ -149,7 +148,7 @@ public class AdvancedRetrofitHelper {
             @Override
             public void onResponse(Call<T> call, Response<T> response) {
                 if (callback != null) {
-                    callback.onEnd();
+                    callback.onEnd(call);
                 }
                 if (call.isCanceled()) return;
                 if (response.isSuccessful()) {
@@ -159,10 +158,6 @@ public class AdvancedRetrofitHelper {
                     if (status.equals(SUCCESS)) {
                         if (callback != null) {
                             callback.onSuccess(call, body);
-                        }
-                    } else if (status.equals(TOKEN_EXPIRED)) { // token失效
-                        if (callback != null) {
-                            callback.onTokenExpired(context, msg);
                         }
                     } else {
                         if (callback != null) {
@@ -179,7 +174,7 @@ public class AdvancedRetrofitHelper {
             @Override
             public void onFailure(Call<T> call, Throwable t) {
                 if (callback != null) {
-                    callback.onEnd();
+                    callback.onEnd(call);
                 }
                 if (call.isCanceled()) return;
                 if (callback != null) {
