@@ -9,7 +9,8 @@ package cn.com.uama.retrofitmanager.bean;
 public class PageResult {
     private int curPage;
     private int pageSize;
-    private boolean hasMore;
+    private boolean hasMore;//  是否有下一页
+    private int total;//    总数
 
     public int getCurPage() {
         return curPage;
@@ -33,5 +34,13 @@ public class PageResult {
 
     public void setHasMore(boolean hasMore) {
         this.hasMore = hasMore;
+    }
+
+    public int getTotal() {
+        return total;
+    }
+
+    public void setTotal(int total) {
+        this.total = total;
     }
 }
