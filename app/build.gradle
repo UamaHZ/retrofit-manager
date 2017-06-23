@@ -38,4 +38,6 @@ dependencies {
     // okhttp
     compile "com.squareup.okhttp3:okhttp:${okhttpVersion}"
     compile "com.squareup.okhttp3:logging-interceptor:${okhttpVersion}"
+
+    compile 'com.github.UamaHZ:retrofit-gson-converter:b72e693'
 }
