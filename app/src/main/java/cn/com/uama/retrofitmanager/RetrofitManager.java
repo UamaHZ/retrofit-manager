@@ -2,14 +2,16 @@ package cn.com.uama.retrofitmanager;
 
 import android.util.Log;
 
+import com.uama.retrofit.converter.gson.LMGsonConverterFactory;
+
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import cn.com.uama.retrofitmanager.bean.BaseResp;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Created by liwei on 2017/4/12 10:56
@@ -34,7 +36,7 @@ public class RetrofitManager {
         }
         retrofit = new Retrofit.Builder()
                 .baseUrl(provider.provideBaseUrl())
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(LMGsonConverterFactory.create(BaseResp.class))
                 .client(buildClient(provider.provideOkhttpConfig()))
                 .build();
     }

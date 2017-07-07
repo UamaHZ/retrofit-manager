@@ -19,8 +19,8 @@ android {
 }
 
 ext {
-    retrofitVersion = "2.2.0"
-    okhttpVersion = "3.7.0"
+    retrofitVersion = "2.3.0"
+    okhttpVersion = "3.8.1"
 }
 
 dependencies {
@@ -33,9 +33,10 @@ dependencies {
         // exclude Retrofit’s OkHttp peer-dependency module and define your own module import
         exclude module: 'okhttp'
     }
-    compile "com.squareup.retrofit2:converter-gson:${retrofitVersion}"
 
     // okhttp
     compile "com.squareup.okhttp3:okhttp:${okhttpVersion}"
     compile "com.squareup.okhttp3:logging-interceptor:${okhttpVersion}"
+
+    compile 'com.github.UamaHZ:retrofit-gson-converter:0.1'
 }
