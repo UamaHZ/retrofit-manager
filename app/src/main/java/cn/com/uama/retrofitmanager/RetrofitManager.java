@@ -4,8 +4,14 @@ import android.util.Log;
 
 import com.uama.retrofit.converter.gson.LMGsonConverterFactory;
 
+import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import cn.com.uama.retrofitmanager.bean.BaseResp;
 import okhttp3.Interceptor;
@@ -80,6 +86,20 @@ public class RetrofitManager {
                 throw new RuntimeException("write timeout must be between 0 and Integer.MAX_VALUE in milliseconds.");
             }
             clientBuilder.writeTimeout(writeTimeoutSeconds, TimeUnit.SECONDS);
+
+            X509TrustManager trustManager = config.trustManager();
+            if (trustManager != null) {
+                // 配置 https 证书
+                SSLSocketFactory sslSocketFactory;
+                try {
+                    SSLContext sslContext = SSLContext.getInstance("TLS");
+                    sslContext.init(null, new TrustManager[] { trustManager }, null);
+                    sslSocketFactory = sslContext.getSocketFactory();
+                } catch (GeneralSecurityException e) {
+                    throw new RuntimeException(e);
+                }
+                clientBuilder.sslSocketFactory(sslSocketFactory, trustManager);
+            }
         }
         return clientBuilder.build();
     }

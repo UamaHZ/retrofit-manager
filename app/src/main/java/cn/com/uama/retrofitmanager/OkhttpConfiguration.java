@@ -2,6 +2,8 @@ package cn.com.uama.retrofitmanager;
 
 import java.util.List;
 
+import javax.net.ssl.X509TrustManager;
+
 import okhttp3.Interceptor;
 
 /**
@@ -15,4 +17,5 @@ public interface OkhttpConfiguration {
     int readTimeoutSeconds();
     int writeTimeoutSeconds();
     int connectTimeoutSeconds();
+    X509TrustManager trustManager();
 }

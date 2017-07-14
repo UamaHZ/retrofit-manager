@@ -2,6 +2,8 @@ package cn.com.uama.retrofitmanager;
 
 import java.util.List;
 
+import javax.net.ssl.X509TrustManager;
+
 import okhttp3.Interceptor;
 
 /**
@@ -29,5 +31,10 @@ public class SimpleOkhttpConfiguration implements OkhttpConfiguration {
     @Override
     public int connectTimeoutSeconds() {
         return RetrofitManager.DEFAULT_CONNECT_TIMEOUT;
+    }
+
+    @Override
+    public X509TrustManager trustManager() {
+        return null;
     }
 }
