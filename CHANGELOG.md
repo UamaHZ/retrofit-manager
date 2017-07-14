@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 0.3
+
+*2017-07-14*
+
+OkhttpConfiguration 接口中增加 `X509TrustManager trustManager();` 方法，用于配置 HTTPS 证书。
+
 ## Version 0.2
 
 *2017-06-23*

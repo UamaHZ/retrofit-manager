@@ -1,4 +1,5 @@
 # Retrofit Manager
+[![](https://jitpack.io/v/UamaHZ/retrofit-manager.svg)](https://jitpack.io/#UamaHZ/retrofit-manager)
 
 对 [Retrofit][1] 的使用进行封装，对一些情况进行统一处理，方便复用。
 
@@ -105,6 +106,12 @@ public class CustomApplication extends Application implements RetrofitProvider {
                 // 需要的时候复写
                 return 30;
             }
+            
+            @Override
+            public X509TrustManager trustManager() {
+                // 配置 HTTPS 证书，需要的时候
+                return null;
+            }
         };
     }
 }
@@ -158,9 +165,5 @@ public void onDestroy() {
 ## 注意
 
 **bean 包下定义了一些通用的实体类。在自己的项目中定义接口访问的实体类时，一定要继承 `BaseResp` ，推荐使用 `SimpleResp` ，`SimpleListResp` 和 `SimplePagedListResp` 。详情参考类的实现。**
-
-## TODO
-
-- [x] 在 Fragment 的 onDestroyView 方法中调用 AdvancedRetrofitHelper.cancelCalls(Context) 方法，有可能将同一个 Activity 下的正在显示界面的 Fragment 的 call 取消
 
 [1]: https://github.com/square/retrofit
