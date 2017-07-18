@@ -8,6 +8,15 @@ import java.util.List;
 import java.util.WeakHashMap;
 
 import cn.com.uama.retrofitmanager.bean.BaseResp;
+import cn.com.uama.retrofitmanager.exception.ApiException;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -34,6 +43,8 @@ public class AdvancedRetrofitHelper {
      */
     private static WeakHashMap<Fragment, List<Call>> fragmentCallMap = new WeakHashMap<>();
 
+    private static WeakHashMap<Context, CompositeDisposable> contextDisposable = new WeakHashMap<>();
+    private static WeakHashMap<Fragment, CompositeDisposable> fragmentDisposable = new WeakHashMap<>();
     /**
      * 增加一个 call 到 contextCallMap 中
      */
@@ -62,6 +73,23 @@ public class AdvancedRetrofitHelper {
         }
     }
 
+    public static void addDisposable(Context context, Disposable disposable){
+        CompositeDisposable compositeDisposable = contextDisposable.get(context);
+        if(null == compositeDisposable){
+            compositeDisposable = new CompositeDisposable();
+            contextDisposable.put(context, compositeDisposable);
+        }
+        compositeDisposable.add(disposable);
+    }
+    public static void addDisposable(Fragment fragment, Disposable disposable){
+        CompositeDisposable compositeDisposable = fragmentDisposable.get(fragment);
+        if(null == compositeDisposable){
+            compositeDisposable = new CompositeDisposable();
+            fragmentDisposable.put(fragment, compositeDisposable);
+        }
+        compositeDisposable.add(disposable);
+    }
+
     /**
      * 取消 context 下的所有 call
      * 如果有需要，在 Activity 的 onDestroy() 里调用该方法
@@ -75,6 +103,10 @@ public class AdvancedRetrofitHelper {
                 }
             }
             remove(context);
+        }
+        CompositeDisposable disposable = contextDisposable.get(context);
+        if(null != disposable && !disposable.isDisposed()){
+            disposable.dispose();
         }
     }
 
@@ -93,6 +125,10 @@ public class AdvancedRetrofitHelper {
             }
             remove(fragment);
         }
+        CompositeDisposable disposable = fragmentDisposable.get(fragment);
+        if(null != disposable && !disposable.isDisposed()){
+            disposable.dispose();
+        }
     }
 
     /**
@@ -100,6 +136,7 @@ public class AdvancedRetrofitHelper {
      */
     public static void remove(Context context) {
         contextCallMap.remove(context);
+        contextDisposable.remove(context);
     }
 
     /**
@@ -107,6 +144,7 @@ public class AdvancedRetrofitHelper {
      */
     public static void remove(Fragment fragment) {
         fragmentCallMap.remove(fragment);
+        fragmentDisposable.remove(fragment);
     }
 
     public static <T extends BaseResp> void enqueue(Context context,
@@ -139,6 +177,48 @@ public class AdvancedRetrofitHelper {
             addCall(fragment, call);
         }
         enqueueCall(fragment.getContext(), call, callback);
+    }
+
+    private <T extends BaseResp> Observable<T> enqueueRxJava(final Context context, Observable<T> observable){
+        return observable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .map(new Function<T, T>() {
+                    @Override
+                    public T apply(@NonNull T t) throws Exception {
+                        if(!t.getStatus().equals(SUCCESS)){
+                            throw new ApiException(t.getStatus(), t.getMsg());
+                        }
+                        return t;
+                    }
+                })
+                .doOnSubscribe(new Consumer<Disposable>() {
+                    @Override
+                    public void accept(@NonNull Disposable disposable) throws Exception {
+                        addDisposable(context, disposable);
+                    }
+                });
+    }
+
+    private <T extends BaseResp> Observable<T> enqueueRxJava(final Fragment fragment, Observable<T> observable){
+        return observable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .map(new Function<T, T>() {
+                    @Override
+                    public T apply(@NonNull T t) throws Exception {
+                        if(!t.getStatus().equals(SUCCESS)){
+                            throw new ApiException(t.getStatus(), t.getMsg());
+                        }
+                        return t;
+                    }
+                })
+                .doOnSubscribe(new Consumer<Disposable>() {
+                    @Override
+                    public void accept(@NonNull Disposable disposable) throws Exception {
+                        addDisposable(fragment, disposable);
+                    }
+                });
     }
 
     private static <T extends BaseResp> void enqueueCall(final Context context,
