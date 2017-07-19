@@ -29,8 +29,8 @@ import retrofit2.Response;
 
 public class AdvancedRetrofitHelper {
 
-    private static final String SUCCESS = "100";
-    private static final String FAILURE = "-1";
+    public static final String SUCCESS = "100";
+    public static final String FAILURE = "-1";
 
     /**
      * 将 context 中的 call 放到 contextCallMap 中，
