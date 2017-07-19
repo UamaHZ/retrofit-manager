@@ -1,7 +1,5 @@
 package cn.com.uama.retrofitmanager.base;
 
-import android.widget.Toast;
-
 import cn.com.uama.retrofitmanager.bean.BaseResp;
 import io.reactivex.Observer;
 import io.reactivex.annotations.NonNull;
@@ -13,7 +11,6 @@ import io.reactivex.disposables.Disposable;
  */
 
 public abstract class BaseObserver<T extends BaseResp> implements Observer<T>, ISubscriber<T> {
-    private Toast mToast;
     @Override
     public void onSubscribe(@NonNull Disposable d) {
         doOnSubscribe(d);

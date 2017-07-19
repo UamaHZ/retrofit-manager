@@ -32,6 +32,7 @@ public class BaseTransformer {
                         .doOnSubscribe(new Consumer<Disposable>() {
                             @Override
                             public void accept(@NonNull Disposable disposable) throws Exception {
+                                //  做泄漏处理
                                 AdvancedRetrofitHelper.addDisposable(context, disposable);
                             }
                         })
@@ -57,6 +58,7 @@ public class BaseTransformer {
                         .doOnSubscribe(new Consumer<Disposable>() {
                             @Override
                             public void accept(@NonNull Disposable disposable) throws Exception {
+                                //  做泄漏处理
                                 AdvancedRetrofitHelper.addDisposable(fragment, disposable);
                             }
                         })
