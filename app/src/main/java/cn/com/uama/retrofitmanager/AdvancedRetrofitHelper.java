@@ -73,7 +73,7 @@ public class AdvancedRetrofitHelper {
         }
     }
 
-    private static void addDisposable(Context context, Disposable disposable){
+    public static void addDisposable(Context context, Disposable disposable){
         CompositeDisposable compositeDisposable = contextDisposable.get(context);
         if(null == compositeDisposable){
             compositeDisposable = new CompositeDisposable();
@@ -81,7 +81,7 @@ public class AdvancedRetrofitHelper {
         }
         compositeDisposable.add(disposable);
     }
-    private static void addDisposable(Fragment fragment, Disposable disposable){
+    public static void addDisposable(Fragment fragment, Disposable disposable){
         CompositeDisposable compositeDisposable = fragmentDisposable.get(fragment);
         if(null == compositeDisposable){
             compositeDisposable = new CompositeDisposable();
@@ -179,7 +179,7 @@ public class AdvancedRetrofitHelper {
         enqueueCall(fragment.getContext(), call, callback);
     }
 
-    private <T extends BaseResp> Observable<T> enqueueRxJava(final Context context, Observable<T> observable){
+    public static  <T extends BaseResp> Observable<T> enqueueRxJava(final Context context, Observable<T> observable){
         return observable
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
