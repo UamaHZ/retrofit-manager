@@ -18,6 +18,7 @@ import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 
 /**
  * Created by liwei on 2017/4/12 10:56
@@ -34,7 +35,6 @@ public class RetrofitManager {
     static final int DEFAULT_WRITE_TIMEOUT = 30;
 
     private static Retrofit retrofit;
-
     public static void init(RetrofitProvider provider) {
         if (retrofit != null) {
             Log.w(TAG, "RetrofitManager already initialized!");
@@ -43,6 +43,7 @@ public class RetrofitManager {
         retrofit = new Retrofit.Builder()
                 .baseUrl(provider.provideBaseUrl())
                 .addConverterFactory(LMGsonConverterFactory.create(BaseResp.class))
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .client(buildClient(provider.provideOkhttpConfig()))
                 .build();
     }

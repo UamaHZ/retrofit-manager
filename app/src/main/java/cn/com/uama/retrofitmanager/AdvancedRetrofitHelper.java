@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.WeakHashMap;
 
 import cn.com.uama.retrofitmanager.bean.BaseResp;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -20,8 +22,8 @@ import retrofit2.Response;
 
 public class AdvancedRetrofitHelper {
 
-    private static final String SUCCESS = "100";
-    private static final String FAILURE = "-1";
+    public static final String SUCCESS = "100";
+    public static final String FAILURE = "-1";
 
     /**
      * 将 context 中的 call 放到 contextCallMap 中，
@@ -34,6 +36,8 @@ public class AdvancedRetrofitHelper {
      */
     private static WeakHashMap<Fragment, List<Call>> fragmentCallMap = new WeakHashMap<>();
 
+    private static WeakHashMap<Context, CompositeDisposable> contextDisposable = new WeakHashMap<>();
+    private static WeakHashMap<Fragment, CompositeDisposable> fragmentDisposable = new WeakHashMap<>();
     /**
      * 增加一个 call 到 contextCallMap 中
      */
@@ -62,6 +66,23 @@ public class AdvancedRetrofitHelper {
         }
     }
 
+    public static void addDisposable(Context context, Disposable disposable){
+        CompositeDisposable compositeDisposable = contextDisposable.get(context);
+        if(null == compositeDisposable){
+            compositeDisposable = new CompositeDisposable();
+            contextDisposable.put(context, compositeDisposable);
+        }
+        compositeDisposable.add(disposable);
+    }
+    public static void addDisposable(Fragment fragment, Disposable disposable){
+        CompositeDisposable compositeDisposable = fragmentDisposable.get(fragment);
+        if(null == compositeDisposable){
+            compositeDisposable = new CompositeDisposable();
+            fragmentDisposable.put(fragment, compositeDisposable);
+        }
+        compositeDisposable.add(disposable);
+    }
+
     /**
      * 取消 context 下的所有 call
      * 如果有需要，在 Activity 的 onDestroy() 里调用该方法
@@ -75,6 +96,10 @@ public class AdvancedRetrofitHelper {
                 }
             }
             remove(context);
+        }
+        CompositeDisposable disposable = contextDisposable.get(context);
+        if(null != disposable && !disposable.isDisposed()){
+            disposable.dispose();
         }
     }
 
@@ -93,6 +118,10 @@ public class AdvancedRetrofitHelper {
             }
             remove(fragment);
         }
+        CompositeDisposable disposable = fragmentDisposable.get(fragment);
+        if(null != disposable && !disposable.isDisposed()){
+            disposable.dispose();
+        }
     }
 
     /**
@@ -100,6 +129,7 @@ public class AdvancedRetrofitHelper {
      */
     public static void remove(Context context) {
         contextCallMap.remove(context);
+        contextDisposable.remove(context);
     }
 
     /**
@@ -107,6 +137,7 @@ public class AdvancedRetrofitHelper {
      */
     public static void remove(Fragment fragment) {
         fragmentCallMap.remove(fragment);
+        fragmentDisposable.remove(fragment);
     }
 
     public static <T extends BaseResp> void enqueue(Context context,
