@@ -45,7 +45,7 @@ public class PageResult implements Cloneable {
     }
 
     @Override
-    protected Object clone() throws CloneNotSupportedException {
+    public Object clone() throws CloneNotSupportedException {
         PageResult pageResult = null;
         try{
             pageResult = (PageResult) super.clone();
