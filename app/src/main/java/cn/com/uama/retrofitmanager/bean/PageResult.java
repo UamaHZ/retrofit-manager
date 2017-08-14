@@ -6,7 +6,7 @@ package cn.com.uama.retrofitmanager.bean;
  * Description: 分页参数
  */
 
-public class PageResult {
+public class PageResult implements Cloneable {
     private int curPage;
     private int pageSize;
     private boolean hasMore;//  是否有下一页
@@ -42,5 +42,16 @@ public class PageResult {
 
     public void setTotal(int total) {
         this.total = total;
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        PageResult pageResult = null;
+        try{
+            pageResult = (PageResult) super.clone();
+        }catch (CloneNotSupportedException e){
+            e.printStackTrace();
+        }
+        return pageResult;
     }
 }
