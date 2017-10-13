@@ -39,6 +39,9 @@ public class RetrofitManager {
             Log.w(TAG, "RetrofitManager already initialized!");
             return;
         }
+        if (provider == null) {
+            throw new IllegalArgumentException("RetrofitProvider must NOT be null!");
+        }
         retrofit = new Retrofit.Builder()
                 .baseUrl(provider.provideBaseUrl())
                 .addConverterFactory(LMGsonConverterFactory.create(BaseResp.class))
