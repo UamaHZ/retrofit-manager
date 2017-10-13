@@ -16,7 +16,6 @@ import javax.net.ssl.X509TrustManager;
 import cn.com.uama.retrofitmanager.bean.BaseResp;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 
@@ -53,15 +52,6 @@ public class RetrofitManager {
      */
     private static OkHttpClient buildClient(OkhttpConfiguration config) {
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
-        // 日志拦截器拦截所有返回数据
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        // 如果是 debug 就 log 所有数据，否则不 log
-        if (BuildConfig.DEBUG) {
-            loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        } else {
-            loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.NONE);
-        }
-        clientBuilder.addInterceptor(loggingInterceptor);
         if (config != null) {
             List<Interceptor> interceptors = config.interceptors();
             // 添加提供的拦截器

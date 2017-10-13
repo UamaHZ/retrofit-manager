@@ -34,7 +34,6 @@ dependencies {
     }
     // okhttp
     compile "com.squareup.okhttp3:okhttp:${okhttpVersion}"
-    compile "com.squareup.okhttp3:logging-interceptor:${okhttpVersion}"
     compile 'com.github.UamaHZ:retrofit-gson-converter:0.1'
     //  rxjava
     compile 'io.reactivex.rxjava2:rxjava:2.1.1'
