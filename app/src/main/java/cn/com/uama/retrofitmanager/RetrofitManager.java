@@ -57,10 +57,8 @@ public class RetrofitManager {
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
         if (config != null) {
             List<Interceptor> interceptors = config.interceptors();
-            // 添加提供的拦截器
-            for (int i = 0; interceptors != null && i < interceptors.size(); i++) {
-                interceptors.get(i);
-                clientBuilder.addInterceptor(interceptors.get(i));
+            if (interceptors != null) {
+                clientBuilder.interceptors().addAll(interceptors);
             }
             // 连接超时
             int connectTimeoutSeconds = config.connectTimeoutSeconds();
