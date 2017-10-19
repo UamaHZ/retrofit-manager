@@ -1,8 +1,5 @@
 package cn.com.uama.retrofitmanager;
 
-import android.content.Context;
-import android.support.v4.app.Fragment;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
@@ -25,27 +22,17 @@ public class AdvancedRetrofitHelper {
     public static final String SUCCESS = "100";
     public static final String FAILURE = "-1";
 
+    private static WeakHashMap<Object, List<Call>> callMap = new WeakHashMap<>();
+    private static WeakHashMap<Object, CompositeDisposable> disposableMap = new WeakHashMap<>();
     /**
-     * 将 context 中的 call 放到 contextCallMap 中，
-     * 方便统一取消某个 context 的所有 call
+     * 增加一个 {@link retrofit2.Call} 对象 call 到 {@link #callMap} 中
+     * 对应 key 的所有 call 可以在适当的时候统一全部取消
      */
-    private static WeakHashMap<Context, List<Call>> contextCallMap = new WeakHashMap<>();
-    /**
-     * 将 fragment 中的 call 放到 fragmentCallMap 中，
-     * 方便统一取消某个 fragment 的所有 call
-     */
-    private static WeakHashMap<Fragment, List<Call>> fragmentCallMap = new WeakHashMap<>();
-
-    private static WeakHashMap<Context, CompositeDisposable> contextDisposable = new WeakHashMap<>();
-    private static WeakHashMap<Fragment, CompositeDisposable> fragmentDisposable = new WeakHashMap<>();
-    /**
-     * 增加一个 call 到 contextCallMap 中
-     */
-    public static void addCall(Context context, Call call) {
-        List<Call> calls = contextCallMap.get(context);
+    public static void addCall(Object key, Call call) {
+        List<Call> calls = callMap.get(key);
         if (calls == null) {
             calls = new ArrayList<>();
-            contextCallMap.put(context, calls);
+            callMap.put(key, calls);
         }
         if (!calls.contains(call)) {
             calls.add(call);
@@ -53,127 +40,82 @@ public class AdvancedRetrofitHelper {
     }
 
     /**
-     * 增加一个 call 到 fragmentCallMap 中
+     * 增加一个 {@link io.reactivex.disposables.Disposable} 对象 disposable 到 {@link #disposableMap} 中
+     * 对应 key 的所有 disposable 可以在适当的时候统一全部释放
      */
-    public static void addCall(Fragment fragment, Call call) {
-        List<Call> calls = fragmentCallMap.get(fragment);
-        if (calls == null) {
-            calls = new ArrayList<>();
-            fragmentCallMap.put(fragment, calls);
-        }
-        if (!calls.contains(call)) {
-            calls.add(call);
-        }
-    }
-
-    public static void addDisposable(Context context, Disposable disposable){
-        CompositeDisposable compositeDisposable = contextDisposable.get(context);
-        if(null == compositeDisposable){
+    public static void addDisposable(Object key, Disposable disposable){
+        CompositeDisposable compositeDisposable = disposableMap.get(key);
+        if(compositeDisposable == null){
             compositeDisposable = new CompositeDisposable();
-            contextDisposable.put(context, compositeDisposable);
-        }
-        compositeDisposable.add(disposable);
-    }
-    public static void addDisposable(Fragment fragment, Disposable disposable){
-        CompositeDisposable compositeDisposable = fragmentDisposable.get(fragment);
-        if(null == compositeDisposable){
-            compositeDisposable = new CompositeDisposable();
-            fragmentDisposable.put(fragment, compositeDisposable);
+            disposableMap.put(key, compositeDisposable);
         }
         compositeDisposable.add(disposable);
     }
 
     /**
-     * 取消 context 下的所有 call
-     * 如果有需要，在 Activity 的 onDestroy() 里调用该方法
+     * 取消对应 key 的所有 call 访问
      */
-    public static void cancelCalls(Context context) {
-        List<Call> calls = contextCallMap.get(context);
+    public static void cancelCalls(Object key) {
+        List<Call> calls = callMap.get(key);
         if (calls != null) {
             for (Call call : calls) {
                 if (call != null && !call.isCanceled()) {
                     call.cancel();
                 }
             }
-            remove(context);
-        }
-        CompositeDisposable disposable = contextDisposable.get(context);
-        if(null != disposable && !disposable.isDisposed()){
-            disposable.dispose();
+
+            callMap.remove(key);
         }
     }
 
     /**
-     * 取消 fragment 下的所有 call
-     * 如果有需要，在 Fragment 的 onDestroyView() 里调用该方法
-     * @param fragment
+     * 释放对应 key 的所有 disposable
      */
-    public static void cancelCalls(Fragment fragment) {
-        List<Call> calls = fragmentCallMap.get(fragment);
-        if (calls != null) {
-            for (Call call : calls) {
-                if (call != null && !call.isCanceled()) {
-                    call.cancel();
-                }
+    public static void disposeDisposables(Object key) {
+        CompositeDisposable compositeDisposable = disposableMap.get(key);
+        if (compositeDisposable != null) {
+            if (!compositeDisposable.isDisposed()) {
+                compositeDisposable.dispose();
             }
-            remove(fragment);
-        }
-        CompositeDisposable disposable = fragmentDisposable.get(fragment);
-        if(null != disposable && !disposable.isDisposed()){
-            disposable.dispose();
+
+            disposableMap.remove(key);
         }
     }
 
     /**
-     * 从 {@link #contextCallMap} 中移除 context，主要是为了防止内存泄露
+     * 释放对应 key 的所有资源
      */
-    public static void remove(Context context) {
-        contextCallMap.remove(context);
-        contextDisposable.remove(context);
+    public static void releaseResourcesFor(Object key) {
+        cancelCalls(key);
+        disposeDisposables(key);
     }
 
     /**
-     * 从 {@link #fragmentCallMap} 中移除 fragment，主要是为了防止内存泄露
+     * 从 {@link #callMap} 和 {@link #disposableMap} 中移除 key，主要是为了防止内存泄露
      */
-    public static void remove(Fragment fragment) {
-        fragmentCallMap.remove(fragment);
-        fragmentDisposable.remove(fragment);
+    public static void remove(Object key) {
+        callMap.remove(key);
+        disposableMap.remove(key);
     }
 
-    public static <T extends BaseResp> void enqueue(Context context,
+
+    public static <T extends BaseResp> void enqueue(Object key,
                                                     Call<T> call,
                                                     AdvancedRetrofitCallback<T> callback) {
-        enqueue(context, call, callback, true);
+        enqueue(key, call, callback, true);
     }
 
-    public static <T extends BaseResp> void enqueue(final Context context,
-                                                    Call<T> call,
-                                                    final AdvancedRetrofitCallback<T> callback,
-                                                    boolean shouldAddCall) {
-        if (shouldAddCall) {
-            addCall(context, call);
-        }
-        enqueueCall(context, call, callback);
-    }
-
-    public static <T extends BaseResp> void enqueue(Fragment fragment,
-                                                    Call<T> call,
-                                                    AdvancedRetrofitCallback<T> callback) {
-        enqueue(fragment, call, callback, true);
-    }
-
-    public static <T extends BaseResp> void enqueue(Fragment fragment,
+    public static <T extends BaseResp> void enqueue(Object key,
                                                     Call<T> call,
                                                     AdvancedRetrofitCallback<T> callback,
                                                     boolean shouldAddCall) {
         if (shouldAddCall) {
-            addCall(fragment, call);
+            addCall(key, call);
         }
-        enqueueCall(fragment.getContext(), call, callback);
+        enqueueCall(call, callback);
     }
 
-    private static <T extends BaseResp> void enqueueCall(final Context context,
-                                                         Call<T> call,
+    private static <T extends BaseResp> void enqueueCall(Call<T> call,
                                                          final AdvancedRetrofitCallback<T> callback) {
         call.enqueue(new Callback<T>() {
             @Override
@@ -184,15 +126,23 @@ public class AdvancedRetrofitHelper {
                 if (call.isCanceled()) return;
                 if (response.isSuccessful()) {
                     T body = response.body();
-                    String status = body.getStatus();
-                    String msg = body.getMsg();
-                    if (status.equals(SUCCESS)) {
-                        if (callback != null) {
-                            callback.onSuccess(call, body);
+                    if (body != null) {
+                        String status = body.getStatus();
+                        String msg = body.getMsg();
+                        if (SUCCESS.equals(status)) {
+                            if (callback != null) {
+                                callback.onSuccess(call, body);
+                            }
+                        } else {
+                            if (callback != null) {
+                                callback.onError(call, status, msg);
+                            }
                         }
                     } else {
+                        // body 为 null 表示 http status code 是 204 或 205
+                        // 这种情况下没有服务端定义的状态码值，我们认为获取数据失败
                         if (callback != null) {
-                            callback.onError(call, status, msg);
+                            callback.onError(call, String.valueOf(response.code()), null);
                         }
                     }
                 } else {
