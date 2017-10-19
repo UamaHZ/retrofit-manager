@@ -33,6 +33,8 @@ public class RetrofitManager {
     static final int DEFAULT_READ_TIMEOUT = 30;
     static final int DEFAULT_WRITE_TIMEOUT = 30;
 
+    static ApiStatusInterceptor apiStatusInterceptor;
+
     private static Retrofit retrofit;
     public static void init(RetrofitProvider provider) {
         if (retrofit != null) {
@@ -42,6 +44,7 @@ public class RetrofitManager {
         if (provider == null) {
             throw new IllegalArgumentException("RetrofitProvider must NOT be null!");
         }
+        apiStatusInterceptor = provider.provideApiStatusInterceptor();
         retrofit = new Retrofit.Builder()
                 .baseUrl(provider.provideBaseUrl())
                 .addConverterFactory(LMGsonConverterFactory.create(BaseResp.class))

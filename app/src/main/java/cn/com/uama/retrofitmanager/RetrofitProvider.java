@@ -16,4 +16,9 @@ public interface RetrofitProvider {
      * 提供配置项，设置给 okhttp client
      */
     OkHttpConfiguration provideOkHttpConfig();
+
+    /**
+     * 提供接口状态拦截器
+     */
+    ApiStatusInterceptor provideApiStatusInterceptor();
 }

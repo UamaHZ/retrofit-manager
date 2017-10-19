@@ -129,6 +129,8 @@ public class AdvancedRetrofitHelper {
                     if (body != null) {
                         String status = body.getStatus();
                         String msg = body.getMsg();
+                        if (RetrofitManager.apiStatusInterceptor != null
+                                && RetrofitManager.apiStatusInterceptor.intercept(status, msg)) return;
                         if (SUCCESS.equals(status)) {
                             if (callback != null) {
                                 callback.onSuccess(call, body);
