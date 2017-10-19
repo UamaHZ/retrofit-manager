@@ -14,6 +14,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import cn.com.uama.retrofitmanager.bean.BaseResp;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
@@ -48,7 +49,7 @@ public class RetrofitManager {
         retrofit = new Retrofit.Builder()
                 .baseUrl(provider.provideBaseUrl())
                 .addConverterFactory(LMGsonConverterFactory.create(BaseResp.class))
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
                 .client(buildClient(provider.provideOkHttpConfig()))
                 .build();
     }
