@@ -9,10 +9,10 @@ import okhttp3.Interceptor;
 /**
  * Created by liwei on 2017/4/19 15:11
  * Email: liwei@uama.com.cn
- * Description: OkhttpConfiguration 的简单实现
+ * Description: OkHttpConfiguration 的简单实现
  */
 
-public class SimpleOkhttpConfiguration implements OkhttpConfiguration {
+public class SimpleOkHttpConfiguration implements OkHttpConfiguration {
     @Override
     public List<Interceptor> interceptors() {
         return null;

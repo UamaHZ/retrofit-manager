@@ -15,5 +15,5 @@ public interface RetrofitProvider {
     /**
      * 提供配置项，设置给 okhttp client
      */
-    OkhttpConfiguration provideOkhttpConfig();
+    OkHttpConfiguration provideOkHttpConfig();
 }

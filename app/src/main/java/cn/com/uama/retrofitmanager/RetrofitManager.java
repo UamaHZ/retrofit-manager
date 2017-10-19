@@ -46,14 +46,14 @@ public class RetrofitManager {
                 .baseUrl(provider.provideBaseUrl())
                 .addConverterFactory(LMGsonConverterFactory.create(BaseResp.class))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .client(buildClient(provider.provideOkhttpConfig()))
+                .client(buildClient(provider.provideOkHttpConfig()))
                 .build();
     }
 
     /**
      * 创建配置好的 OkhttpClient
      */
-    private static OkHttpClient buildClient(OkhttpConfiguration config) {
+    private static OkHttpClient buildClient(OkHttpConfiguration config) {
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
         if (config != null) {
             List<Interceptor> interceptors = config.interceptors();

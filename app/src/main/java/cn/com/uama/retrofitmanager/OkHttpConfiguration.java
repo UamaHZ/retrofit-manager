@@ -12,7 +12,7 @@ import okhttp3.Interceptor;
  * Description: Okhttp 配置接口
  */
 
-public interface OkhttpConfiguration {
+public interface OkHttpConfiguration {
     List<Interceptor> interceptors();
     int readTimeoutSeconds();
     int writeTimeoutSeconds();
