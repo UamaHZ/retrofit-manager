@@ -42,13 +42,12 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public boolean onError(Call<SimpleResp<UpdateBean>> call, String errorCode, String msg) {
+                    public void onError(Call<SimpleResp<UpdateBean>> call, String errorCode, String msg) {
                         if (TextUtils.isEmpty(msg)) {
                             infoView.setText(errorCode + ":获取数据失败");
                         } else {
                             infoView.setText(errorCode + ":" + msg);
                         }
-                        return super.onError(call, errorCode, msg);
                     }
 
                     @Override

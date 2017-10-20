@@ -10,6 +10,6 @@ import retrofit2.Call;
 
 public interface AdvancedRetrofitCallback<T> {
     void onSuccess(Call<T> call, T resp);
-    boolean onError(Call<T> call, String errorCode, String msg);
+    void onError(Call<T> call, String errorCode, String msg);
     void onEnd(Call<T> call);
 }

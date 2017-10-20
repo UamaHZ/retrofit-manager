@@ -16,9 +16,8 @@ public class SimpleRetrofitCallback<T> implements AdvancedRetrofitCallback<T> {
     }
 
     @Override
-    public boolean onError(Call<T> call, String errorCode, String msg) {
+    public void onError(Call<T> call, String errorCode, String msg) {
         // do nothing
-        return false;
     }
 
     @Override
