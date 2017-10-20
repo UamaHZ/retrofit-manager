@@ -53,7 +53,7 @@ public interface OkHttpConfiguration {
 
 #### ApiStatusInterceptor
 
-用于拦截接口返回状态的拦截器，方便对某种状态进行统一处理。**注意：这是个自定义接口，和 OkHttp 的 `Interceptor` 没有任何关系。**接口定义如下：
+用于拦截接口返回状态的拦截器，方便对某种状态进行统一处理。**注意：这是个自定义接口，和 OkHttp 的 `Interceptor` 没有任何关系。 **接口定义如下：
 
 ```java
 public interface ApiStatusInterceptor {
@@ -75,7 +75,7 @@ intercep 方法的返回值类型为 boolean ，如果返回 true 则表示这�
 
 提供 `enqueue` 方法对 `retrofit2.Call<T>.enqueue(retrofit2.Callback<T>)` 的调用进行封装，在 `retrofit2.Callback<T>` 的回调方法中统一处理 status ，并将对应的结果回调到我们的 `AdvancedRetrofitCallback` 接口的回调方法中。
 
-维护了一个 `WeakHashMap` 对象*（暂时忽略代码实现中的另一个，那是为后面提供 RxJava2 支持做准备）*，用于缓存针对某个 key  (可以是 `context` 或 `fragment`) 的 `call` 对象列表，凡是放到缓存 `map` 中的 `call` 都可以通过 `cancelCalls(Object key)` 方法取消某个 key 下的所有 `call`。初衷是方便在 `activity` 的 `onDestroy` 方法或者 `fragment` 的 `onDestroyView` 方法中取消所有尚未执行完毕的 `call` 。可以通过 `enqueue` 的重载 (overload) 方法选择是否将某个 `call` 放到缓存 `map` 中。
+维护了一个 `WeakHashMap` 对象 *（暂时忽略代码实现中的另一个，那是为后面提供 RxJava2 支持做准备）*，用于缓存针对某个 key  (可以是 `context` 或 `fragment`) 的 `call` 对象列表，凡是放到缓存 `map` 中的 `call` 都可以通过 `cancelCalls(Object key)` 方法取消某个 key 下的所有 `call`。初衷是方便在 `activity` 的 `onDestroy` 方法或者 `fragment` 的 `onDestroyView` 方法中取消所有尚未执行完毕的 `call` 。可以通过 `enqueue` 的重载 (overload) 方法选择是否将某个 `call` 放到缓存 `map` 中。
 
 #### AdvancedRetrofitCallback
 
