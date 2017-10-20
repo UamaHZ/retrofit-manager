@@ -1,5 +1,15 @@
 # Change Log
 
+## Version 0.4
+
+*2017-10-20*
+
+* 新增 `ApiStatusInterceptor` ，使用户有机会对某个接口返回状态进行统一处理。
+* 新增 sample module，进行简单的示例。
+* 新增 HTTPS 配置帮助类 `HttpsHelper` 。
+* OkHttp 版本升级到 3.9.0 ，RxJava2 版本升级到 2.1.2 。
+* 将 AdvancedRetrofitCallback 接口的 onError 回调方法的返回值类型改为 void 。
+
 ## Version 0.3
 
 *2017-07-14*
