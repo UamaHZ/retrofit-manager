@@ -53,7 +53,7 @@ public interface OkHttpConfiguration {
 
 #### ApiStatusInterceptor
 
-用于拦截接口返回状态的拦截器，方便对某种状态进行统一处理。**注意：这是个自定义接口，和 OkHttp 的 `Interceptor` 没有任何关系。 **接口定义如下：
+用于拦截接口返回状态的拦截器，方便对某种状态进行统一处理。**注意：这是个自定义接口，和 OkHttp 的 `Interceptor` 没有任何关系。** 接口定义如下：
 
 ```java
 public interface ApiStatusInterceptor {
