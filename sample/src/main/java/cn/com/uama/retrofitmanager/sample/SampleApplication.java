@@ -9,6 +9,7 @@ import java.util.List;
 import javax.net.ssl.X509TrustManager;
 
 import cn.com.uama.retrofitmanager.ApiStatusInterceptor;
+import cn.com.uama.retrofitmanager.HttpsHelper;
 import cn.com.uama.retrofitmanager.OkHttpConfiguration;
 import cn.com.uama.retrofitmanager.RetrofitManager;
 import cn.com.uama.retrofitmanager.RetrofitProvider;
@@ -63,9 +64,8 @@ public class SampleApplication extends Application implements RetrofitProvider {
 
             @Override
             public X509TrustManager trustManager() {
-                // 配置 HTTPS 的证书，将相关逻辑封装进工具类，方便调用，比如：
-                // return HttpsHelper.getTrustManager();
-                return super.trustManager();
+                // 配置 HTTPS 的证书
+                 return HttpsHelper.getTrustManager(getApplicationContext());
             }
         };
     }
