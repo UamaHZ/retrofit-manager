@@ -24,19 +24,19 @@ ext {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:support-v4:26.1.0'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    testImplementation 'junit:junit:4.12'
+    implementation 'com.android.support:support-v4:26.1.0'
     // retrofit
-    compile("com.squareup.retrofit2:retrofit:${retrofitVersion}") {
+    api("com.squareup.retrofit2:retrofit:${retrofitVersion}") {
         // exclude Retrofit’s OkHttp peer-dependency module and define your own module import
         exclude module: 'okhttp'
     }
-    compile "com.squareup.retrofit2:adapter-rxjava2:${retrofitVersion}"
+    api "com.squareup.retrofit2:adapter-rxjava2:${retrofitVersion}"
     // okhttp
-    compile "com.squareup.okhttp3:okhttp:${okhttpVersion}"
-    compile 'com.github.UamaHZ:retrofit-gson-converter:0.1'
+    api "com.squareup.okhttp3:okhttp:${okhttpVersion}"
+    api 'com.github.UamaHZ:retrofit-gson-converter:0.1'
     //  rxjava
-    compile 'io.reactivex.rxjava2:rxjava:2.1.2'
-    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    api 'io.reactivex.rxjava2:rxjava:2.1.2'
+    api 'io.reactivex.rxjava2:rxandroid:2.0.1'
 }

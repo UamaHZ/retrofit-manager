@@ -5,12 +5,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.widget.TextView;
 
-import cn.com.uama.retrofitmanager.sample.bean.UpdateBean;
-
 import cn.com.uama.retrofitmanager.AdvancedRetrofitHelper;
 import cn.com.uama.retrofitmanager.RetrofitManager;
 import cn.com.uama.retrofitmanager.SimpleRetrofitCallback;
 import cn.com.uama.retrofitmanager.bean.SimpleResp;
+import cn.com.uama.retrofitmanager.sample.bean.UpdateBean;
 import retrofit2.Call;
 
 public class MainActivity extends AppCompatActivity {
