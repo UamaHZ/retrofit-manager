@@ -76,12 +76,12 @@ public class SampleApplication extends Application implements RetrofitProvider {
             @Override
             public boolean intercept(String status, String message) {
                 // 在这里对某种 status 进行统一处理
-                if ("100".equals(status)) {
+                if ("102".equals(status)) {
                     // 处理逻辑
                     Log.d("ApiStatusInterceptor", "intercept: " + status);
 
                     // 如果不想数据继续流向本身的回调方法，返回 true
-                    return false;
+                    return true;
                 }
                 return false;
             }

@@ -5,8 +5,18 @@ import java.util.List;
 import java.util.WeakHashMap;
 
 import cn.com.uama.retrofitmanager.bean.BaseResp;
+import cn.com.uama.retrofitmanager.exception.ApiException;
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.ObservableTransformer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -166,5 +176,53 @@ public class AdvancedRetrofitHelper {
                 }
             }
         });
+    }
+
+    public static <T extends BaseResp> ObservableTransformer<T, T> rxObservableTransformer(Object key) {
+        return rxObservableTransformer(key, true);
+    }
+
+    /**
+     * 包含统一逻辑处理的 ObservableTransformer ,使用 Observable 进行接口访问时使用。
+     * @param key 上下文
+     * @param shouldAddDisposable 是否要加到 CompositeDisposable 中以方便统一取消
+     */
+    public static <T extends BaseResp> ObservableTransformer<T, T> rxObservableTransformer(final Object key,
+                                                                                   final boolean shouldAddDisposable) {
+        return new ObservableTransformer<T, T>() {
+            @Override
+            public ObservableSource<T> apply(Observable<T> upstream) {
+                return upstream
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnSubscribe(new Consumer<Disposable>() {
+                            @Override
+                            public void accept(@NonNull Disposable disposable) throws Exception {
+                                if (shouldAddDisposable) {
+                                    addDisposable(key, disposable);
+                                }
+                            }
+                        })
+                        .filter(new Predicate<T>() {
+                            @Override
+                            public boolean test(T t) throws Exception {
+                                // 如果结果没有被统一处理掉，才继续往下走
+                                return RetrofitManager.apiStatusInterceptor == null
+                                        || !RetrofitManager.apiStatusInterceptor.intercept(t.getStatus(), t.getMsg());
+                            }
+                        })
+                        .map(new Function<T, T>() {
+                            @Override
+                            public T apply(@NonNull T t) throws Exception {
+                                String status = t.getStatus();
+                                String msg = t.getMsg();
+                                if(!AdvancedRetrofitHelper.SUCCESS.equals(status)){
+                                    throw new ApiException(status, msg);
+                                }
+                                return t;
+                            }
+                        });
+            }
+        };
     }
 }
