@@ -140,7 +140,12 @@ public class AdvancedRetrofitHelper {
                         String status = body.getStatus();
                         String msg = body.getMsg();
                         if (RetrofitManager.apiStatusInterceptor != null
-                                && RetrofitManager.apiStatusInterceptor.intercept(status, msg)) return;
+                                && RetrofitManager.apiStatusInterceptor.intercept(status, msg)) {
+                            if (callback != null) {
+                                callback.onIntercepted(call, body);
+                            }
+                            return;
+                        }
                         if (SUCCESS.equals(status)) {
                             if (callback != null) {
                                 callback.onSuccess(call, body);
@@ -216,7 +221,7 @@ public class AdvancedRetrofitHelper {
                             public T apply(@NonNull T t) throws Exception {
                                 String status = t.getStatus();
                                 String msg = t.getMsg();
-                                if(!AdvancedRetrofitHelper.SUCCESS.equals(status)){
+                                if(!SUCCESS.equals(status)){
                                     throw new ApiException(status, msg);
                                 }
                                 return t;
