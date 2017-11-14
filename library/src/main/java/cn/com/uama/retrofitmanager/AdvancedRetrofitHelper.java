@@ -140,6 +140,7 @@ public class AdvancedRetrofitHelper {
                                     && RetrofitManager.apiStatusInterceptor.intercept(status, msg)) {
                                 if (callback != null) {
                                     callback.onIntercepted(call, body);
+                                    callback.onEnd(call);
                                 }
                                 return;
                             }
