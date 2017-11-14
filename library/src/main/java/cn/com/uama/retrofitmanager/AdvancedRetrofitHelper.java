@@ -130,54 +130,58 @@ public class AdvancedRetrofitHelper {
         call.enqueue(new Callback<T>() {
             @Override
             public void onResponse(Call<T> call, Response<T> response) {
-                if (callback != null) {
-                    callback.onEnd(call);
-                }
-                if (call.isCanceled()) return;
-                if (response.isSuccessful()) {
-                    T body = response.body();
-                    if (body != null) {
-                        String status = body.getStatus();
-                        String msg = body.getMsg();
-                        if (RetrofitManager.apiStatusInterceptor != null
-                                && RetrofitManager.apiStatusInterceptor.intercept(status, msg)) {
-                            if (callback != null) {
-                                callback.onIntercepted(call, body);
+                if (!call.isCanceled()) {
+                    if (response.isSuccessful()) {
+                        T body = response.body();
+                        if (body != null) {
+                            String status = body.getStatus();
+                            String msg = body.getMsg();
+                            if (RetrofitManager.apiStatusInterceptor != null
+                                    && RetrofitManager.apiStatusInterceptor.intercept(status, msg)) {
+                                if (callback != null) {
+                                    callback.onIntercepted(call, body);
+                                }
+                                return;
                             }
-                            return;
-                        }
-                        if (SUCCESS.equals(status)) {
-                            if (callback != null) {
-                                callback.onSuccess(call, body);
+                            if (SUCCESS.equals(status)) {
+                                if (callback != null) {
+                                    callback.onSuccess(call, body);
+                                }
+                            } else {
+                                if (callback != null) {
+                                    callback.onError(call, status, msg);
+                                }
                             }
                         } else {
+                            // body 为 null 表示 http status code 是 204 或 205
+                            // 这种情况下没有服务端定义的状态码值，我们认为获取数据失败
                             if (callback != null) {
-                                callback.onError(call, status, msg);
+                                callback.onError(call, String.valueOf(response.code()), null);
                             }
                         }
                     } else {
-                        // body 为 null 表示 http status code 是 204 或 205
-                        // 这种情况下没有服务端定义的状态码值，我们认为获取数据失败
                         if (callback != null) {
                             callback.onError(call, String.valueOf(response.code()), null);
                         }
                     }
-                } else {
-                    if (callback != null) {
-                        callback.onError(call, String.valueOf(response.code()), null);
-                    }
+                }
+
+                if (callback != null) {
+                    callback.onEnd(call);
                 }
             }
 
             @Override
             public void onFailure(Call<T> call, Throwable t) {
+                if (!call.isCanceled()) {
+                    if (callback != null) {
+                        t.printStackTrace();
+                        callback.onError(call, FAILURE, null);
+                    }
+                }
+
                 if (callback != null) {
                     callback.onEnd(call);
-                }
-                if (call.isCanceled()) return;
-                if (callback != null) {
-                    t.printStackTrace();
-                    callback.onError(call, FAILURE, null);
                 }
             }
         });
