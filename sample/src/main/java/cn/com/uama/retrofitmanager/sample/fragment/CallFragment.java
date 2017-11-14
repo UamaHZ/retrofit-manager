@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,9 +27,10 @@ import retrofit2.Call;
  */
 public class CallFragment extends Fragment {
 
+    private static final String TAG = "CallFragment";
+
     private ApiService apiService;
     private TextView infoView;
-    private TextView titleView;
 
     private ProgressBar progressBar;
 
@@ -49,7 +51,7 @@ public class CallFragment extends Fragment {
                 checkNewVersion();
             }
         });
-        titleView = view.findViewById(R.id.title_view);
+        TextView titleView = view.findViewById(R.id.title_view);
         titleView.setText("普通方式访问接口：");
 
         apiService = RetrofitManager.createService(ApiService.class);
@@ -85,6 +87,10 @@ public class CallFragment extends Fragment {
                     @Override
                     public void onIntercepted(Call<SimpleResp<UpdateBean>> call, SimpleResp<UpdateBean> resp) {
                         infoView.setText("数据被劫持了！");
+                        UpdateBean data = resp.getData();
+                        if (data != null) {
+                            Log.d(TAG, "被劫持的数据为：" + data.getContent());
+                        }
                     }
 
                     @Override

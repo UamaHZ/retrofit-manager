@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import android.widget.TextView;
 
 import cn.com.uama.retrofitmanager.AdvancedRetrofitHelper;
 import cn.com.uama.retrofitmanager.RetrofitManager;
+import cn.com.uama.retrofitmanager.bean.BaseResp;
 import cn.com.uama.retrofitmanager.bean.SimpleResp;
 import cn.com.uama.retrofitmanager.rx.ErrorConsumer;
 import cn.com.uama.retrofitmanager.sample.ApiService;
@@ -28,9 +30,10 @@ import io.reactivex.functions.Consumer;
  */
 public class ObservableFragment extends Fragment {
 
+    private static final String TAG = "ObservableFragment";
+
     private ApiService apiService;
     private TextView infoView;
-    private TextView titleView;
 
     private ProgressBar progressBar;
 
@@ -51,7 +54,7 @@ public class ObservableFragment extends Fragment {
                 checkNewVersionRx();
             }
         });
-        titleView = view.findViewById(R.id.title_view);
+        TextView titleView = view.findViewById(R.id.title_view);
         titleView.setText("RxJava 方式访问接口：");
 
         apiService = RetrofitManager.createService(ApiService.class);
@@ -91,6 +94,20 @@ public class ObservableFragment extends Fragment {
                             msg = "获取数据失败";
                         }
                         infoView.setText(String.format("%s:%s", code, msg));
+                    }
+
+                    @Override
+                    public void onIntercepted(BaseResp result) {
+                        infoView.setText("数据被劫持了!");
+                        try {
+                            SimpleResp<UpdateBean> resp = (SimpleResp<UpdateBean>) result;
+                            UpdateBean data = resp.getData();
+                            if (data != null) {
+                                Log.d(TAG, "被劫持的数据为：" + data.getContent());
+                            }
+                        } catch (ClassCastException e) {
+                            e.printStackTrace();
+                        }
                     }
                 });
     }

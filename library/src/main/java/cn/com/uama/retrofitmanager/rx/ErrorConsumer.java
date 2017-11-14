@@ -8,7 +8,9 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 import cn.com.uama.retrofitmanager.AdvancedRetrofitHelper;
+import cn.com.uama.retrofitmanager.bean.BaseResp;
 import cn.com.uama.retrofitmanager.exception.ApiException;
+import cn.com.uama.retrofitmanager.exception.ResultInterceptedException;
 import io.reactivex.functions.Consumer;
 
 /**
@@ -24,25 +26,32 @@ public abstract class ErrorConsumer implements Consumer<Throwable> {
 
     @Override
     public void accept(Throwable throwable) throws Exception {
-        String errorCode;
-        String errorMsg = null;
-        if (throwable instanceof ApiException) {
-            ApiException apiException = (ApiException) throwable;
-            errorCode = apiException.getStatus();
-            errorMsg = apiException.getMsg();
+        if (throwable instanceof ResultInterceptedException) {
+            ResultInterceptedException interceptedException = (ResultInterceptedException) throwable;
+            onIntercepted(interceptedException.getResult());
         } else {
-            errorCode = AdvancedRetrofitHelper.FAILURE;
-            if (throwable instanceof SocketTimeoutException) {
-                errorMsg = ERROR_MSG_SOCKET_TIMEOUT;
-            } else if (throwable instanceof SocketException) {
-                errorMsg = ERROR_MSG_SOCKET;
-            } else if (throwable instanceof UnknownHostException) {
-                errorMsg = ERROR_MSG_UNKNOWN_HOST;
+            String errorCode;
+            String errorMsg = null;
+            if (throwable instanceof ApiException) {
+                ApiException apiException = (ApiException) throwable;
+                errorCode = apiException.getStatus();
+                errorMsg = apiException.getMsg();
+            } else {
+                errorCode = AdvancedRetrofitHelper.FAILURE;
+                if (throwable instanceof SocketTimeoutException) {
+                    errorMsg = ERROR_MSG_SOCKET_TIMEOUT;
+                } else if (throwable instanceof SocketException) {
+                    errorMsg = ERROR_MSG_SOCKET;
+                } else if (throwable instanceof UnknownHostException) {
+                    errorMsg = ERROR_MSG_UNKNOWN_HOST;
+                }
             }
-        }
 
-        onError(errorCode, errorMsg);
+            onError(errorCode, errorMsg);
+        }
     }
 
     public abstract void onError(@NonNull String code, @Nullable String msg);
+
+    public void onIntercepted(BaseResp result) {}
 }

@@ -6,6 +6,7 @@ import java.util.WeakHashMap;
 
 import cn.com.uama.retrofitmanager.bean.BaseResp;
 import cn.com.uama.retrofitmanager.exception.ApiException;
+import cn.com.uama.retrofitmanager.exception.ResultInterceptedException;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.ObservableTransformer;
@@ -15,7 +16,6 @@ import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
-import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -208,12 +208,14 @@ public class AdvancedRetrofitHelper {
                                 }
                             }
                         })
-                        .filter(new Predicate<T>() {
+                        .map(new Function<T, T>() {
                             @Override
-                            public boolean test(T t) throws Exception {
-                                // 如果结果没有被统一处理掉，才继续往下走
-                                return RetrofitManager.apiStatusInterceptor == null
-                                        || !RetrofitManager.apiStatusInterceptor.intercept(t.getStatus(), t.getMsg());
+                            public T apply(T t) throws Exception {
+                                if (RetrofitManager.apiStatusInterceptor != null &&
+                                        RetrofitManager.apiStatusInterceptor.intercept(t.getStatus(), t.getMsg())) {
+                                    throw new ResultInterceptedException(t);
+                                }
+                                return t;
                             }
                         })
                         .map(new Function<T, T>() {
