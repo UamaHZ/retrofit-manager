@@ -11,6 +11,7 @@ public class PageResult implements Cloneable {
     private int pageSize;
     private boolean hasMore;//  是否有下一页
     private int total;//    总数
+    private int maxSize;
 
     public int getCurPage() {
         return curPage;
@@ -42,6 +43,14 @@ public class PageResult implements Cloneable {
 
     public void setTotal(int total) {
         this.total = total;
+    }
+
+    public int getMaxSize() {
+        return maxSize;
+    }
+
+    public void setMaxSize(int maxSize) {
+        this.maxSize = maxSize;
     }
 
     @Override
