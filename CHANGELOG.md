@@ -1,5 +1,14 @@
 # Change Log
 
+## Version 1.0
+
+*2017-11-21*
+
+* **完成对 RxJava2 的支持。**
+* `AdvancedRetrofitCallback` 新增 `onIntercepted(Call<T> call, T resp)` 方法，用于在接口返回数据被“劫持”时进行回调。
+* 将 `AdvancedRetrofitCallback#onEnd(Call<T> call)` 回调放到所有其他回调方法后执行。
+* `PageResult` 增加 `maxSize` 字段。
+
 ## Version 0.4
 
 *2017-10-20*
