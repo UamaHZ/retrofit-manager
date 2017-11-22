@@ -25,7 +25,7 @@ public abstract class ErrorConsumer implements Consumer<Throwable> {
     private static final String ERROR_MSG_UNKNOWN_HOST = "网络异常，请检查您的网络状态";
 
     @Override
-    public void accept(Throwable throwable) throws Exception {
+    public final void accept(Throwable throwable) throws Exception {
         if (throwable instanceof ResultInterceptedException) {
             ResultInterceptedException interceptedException = (ResultInterceptedException) throwable;
             onIntercepted(interceptedException.getResult());
@@ -51,7 +51,16 @@ public abstract class ErrorConsumer implements Consumer<Throwable> {
         }
     }
 
+    /**
+     * 错误回调方法
+     * @param code 错误码
+     * @param msg 错误信息
+     */
     public abstract void onError(@NonNull String code, @Nullable String msg);
 
+    /**
+     * 被“劫持”回调方法
+     * @param result 数据实体
+     */
     public void onIntercepted(BaseResp result) {}
 }
