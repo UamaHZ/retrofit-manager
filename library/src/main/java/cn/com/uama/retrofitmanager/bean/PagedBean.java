@@ -1,5 +1,7 @@
 package cn.com.uama.retrofitmanager.bean;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 
 /**
@@ -9,6 +11,7 @@ import java.util.List;
  */
 
 public class PagedBean<T> {
+    @SerializedName(value = "pageResult", alternate = "pageInfo")
     private PageResult pageResult;
     private List<T> resultList;
 
