@@ -37,6 +37,7 @@ public class RetrofitManager {
     static ApiStatusInterceptor apiStatusInterceptor;
 
     private static Retrofit retrofit;
+    private static OkHttpClient client;
     public static void init(RetrofitProvider provider) {
         if (retrofit != null) {
             Log.w(TAG, "RetrofitManager already initialized!");
@@ -46,16 +47,25 @@ public class RetrofitManager {
             throw new IllegalArgumentException("RetrofitProvider must NOT be null!");
         }
         apiStatusInterceptor = provider.provideApiStatusInterceptor();
+        client = buildClient(provider.provideOkHttpConfig());
         retrofit = new Retrofit.Builder()
                 .baseUrl(provider.provideBaseUrl())
                 .addConverterFactory(LMGsonConverterFactory.create(BaseResp.class))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
-                .client(buildClient(provider.provideOkHttpConfig()))
+                .client(client)
                 .build();
     }
 
     /**
-     * 创建配置好的 OkhttpClient
+     * 获取 OKHttpClient 对象，方便其他地方复用
+     * @return RetrofitManager 使用的 OkHttpClient 对象，如果 RetrofitManager 还未初始化，则为 null
+     */
+    public static OkHttpClient getOkHttpClient() {
+        return client;
+    }
+
+    /**
+     * 创建配置好的 OkHttpClient
      */
     private static OkHttpClient buildClient(OkHttpConfiguration config) {
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
