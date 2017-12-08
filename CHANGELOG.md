@@ -1,5 +1,13 @@
 # Change Log
 
+## Version 1.1
+
+*2017-12-08*
+
+* `RetrofitManager` 新增 `getOkHttpClient()` 方法，使 OkHttpClient 对象可以复用
+* 修复：在 `RetrofitProvider` 中 `provideOkHttpConfig()` 返回 null 时，没有设置默认超时时间（30秒）的问题
+* 给 `PagedBean` 中 `pageResult` 设置序列化别名 pageInfo ，以适配老接口中分页参数字段名为 pageInfo 的情况
+
 ## Version 1.0
 
 *2017-11-21*
