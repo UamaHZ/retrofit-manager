@@ -76,21 +76,12 @@ public class RetrofitManager {
             }
             // 连接超时
             int connectTimeoutSeconds = config.connectTimeoutSeconds();
-            if (!isTimeoutValueValid(connectTimeoutSeconds)) {
-                throw new RuntimeException("connect timeout must be between 0 and Integer.MAX_VALUE in milliseconds.");
-            }
             clientBuilder.connectTimeout(connectTimeoutSeconds, TimeUnit.SECONDS);
             // 读取超时
             int readTimeoutSeconds = config.readTimeoutSeconds();
-            if (!isTimeoutValueValid(readTimeoutSeconds)) {
-                throw new RuntimeException("read timeout must be between 0 and Integer.MAX_VALUE in milliseconds.");
-            }
             clientBuilder.readTimeout(readTimeoutSeconds, TimeUnit.SECONDS);
             // 写入超时
             int writeTimeoutSeconds = config.writeTimeoutSeconds();
-            if (!isTimeoutValueValid(writeTimeoutSeconds)) {
-                throw new RuntimeException("write timeout must be between 0 and Integer.MAX_VALUE in milliseconds.");
-            }
             clientBuilder.writeTimeout(writeTimeoutSeconds, TimeUnit.SECONDS);
 
             X509TrustManager trustManager = config.trustManager();
@@ -106,15 +97,16 @@ public class RetrofitManager {
                 }
                 clientBuilder.sslSocketFactory(sslSocketFactory, trustManager);
             }
+        } else {
+            // 设置默认超时时间
+            // 连接超时
+            clientBuilder.connectTimeout(DEFAULT_CONNECT_TIMEOUT, TimeUnit.SECONDS);
+            // 读取超时
+            clientBuilder.readTimeout(DEFAULT_READ_TIMEOUT, TimeUnit.SECONDS);
+            // 写入超时
+            clientBuilder.writeTimeout(DEFAULT_WRITE_TIMEOUT, TimeUnit.SECONDS);
         }
         return clientBuilder.build();
-    }
-
-    /**
-     * 超时值是否在合理范围内
-     */
-    private static boolean isTimeoutValueValid(int timeout) {
-        return timeout * 1000 >=0 && timeout * 1000 <= Integer.MAX_VALUE;
     }
 
     /**
