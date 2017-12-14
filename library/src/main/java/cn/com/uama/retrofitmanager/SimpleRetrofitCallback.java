@@ -29,4 +29,9 @@ public class SimpleRetrofitCallback<T> implements AdvancedRetrofitCallback<T> {
     public void onEnd(Call<T> call) {
         // do nothing
     }
+
+    @Override
+    public void onCanceled() {
+        // do nothing
+    }
 }

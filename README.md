@@ -83,14 +83,17 @@ intercept 方法的返回值类型为 boolean ，如果返回 true 则表示这�
 
 **AdvancedRetrofitCallback**
 
-自定义的回调接口，定义了三个方法：
+自定义的回调接口，定义了五个方法：
 
 - `onSuccess` 方法在成功的时候（即 status 为 100 时）回调
 - `onError` 方法在不成功的时候进行回调
 - `onIntercepted` 方法在接口返回数据被劫持时进行回调，该方法回调时 `onSuccess` 和 `onError` 方法不会进行回调
-- `onEnd` 方法在所有情况下都会回调，该方法的初衷是方便取消 loading 对话框的显示
+- `onEnd` 方法在**请求没有被取消**的情况下都会回调
+- `onCanceled` 方法在请求被取消的情况下会回调
 
-`SimpleRetrofitCallback` 是 `AdvancedRetrofitCallback` 接口的实现类，四个方法均为空实现，方便根据需要重写 (override) 方法。
+**注意：** `onEnd` 和 `onCanceled` 互斥，也就是说一个方法被回调，另一个方法就不会被回调。
+
+`SimpleRetrofitCallback` 是 `AdvancedRetrofitCallback` 接口的实现类，五个方法均为空实现，方便根据需要重写 (override) 方法。
 
 #### 2. 通过 RxJava2 方式访问接口
 

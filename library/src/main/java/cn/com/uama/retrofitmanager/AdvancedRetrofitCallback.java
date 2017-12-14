@@ -39,9 +39,14 @@ public interface AdvancedRetrofitCallback<T> {
     void onIntercepted(Call<T> call, T resp);
 
     /**
-     * 接口请求结束时的回调，所有情况都会走该方法。
+     * 接口请求结束时的回调，在没有被取消的情况下都会走该方法。
      *
      * @param call 接口请求对象
      */
     void onEnd(Call<T> call);
+
+    /**
+     * 接口请求被取消时的回调
+     */
+    void onCanceled();
 }

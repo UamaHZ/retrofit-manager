@@ -165,10 +165,14 @@ public class AdvancedRetrofitHelper {
                             callback.onError(call, String.valueOf(response.code()), null);
                         }
                     }
-                }
 
-                if (callback != null) {
-                    callback.onEnd(call);
+                    if (callback != null) {
+                        callback.onEnd(call);
+                    }
+                } else {
+                    if (callback != null) {
+                        callback.onCanceled();
+                    }
                 }
             }
 
@@ -178,11 +182,12 @@ public class AdvancedRetrofitHelper {
                     if (callback != null) {
                         t.printStackTrace();
                         callback.onError(call, FAILURE, null);
+                        callback.onEnd(call);
                     }
-                }
-
-                if (callback != null) {
-                    callback.onEnd(call);
+                } else {
+                    if (callback != null) {
+                        callback.onCanceled();
+                    }
                 }
             }
         });
