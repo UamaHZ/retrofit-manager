@@ -140,29 +140,44 @@ public class AdvancedRetrofitHelper {
                                     && RetrofitManager.apiStatusInterceptor.intercept(status, msg)) {
                                 if (callback != null) {
                                     callback.onIntercepted(call, body);
-                                    callback.onEnd(call);
-                                }
-                                return;
-                            }
-                            if (SUCCESS.equals(status)) {
-                                if (callback != null) {
-                                    callback.onSuccess(call, body);
                                 }
                             } else {
-                                if (callback != null) {
-                                    callback.onError(call, status, msg);
+                                if (SUCCESS.equals(status)) {
+                                    if (callback != null) {
+                                        callback.onSuccess(call, body);
+                                    }
+                                } else {
+                                    if (callback != null) {
+                                        callback.onError(call, status, msg);
+                                    }
                                 }
                             }
                         } else {
                             // body 为 null 表示 http status code 是 204 或 205
                             // 这种情况下没有服务端定义的状态码值，我们认为获取数据失败
-                            if (callback != null) {
-                                callback.onError(call, String.valueOf(response.code()), null);
+                            String responseCode = String.valueOf(response.code());
+                            if (RetrofitManager.apiStatusInterceptor != null
+                                    && RetrofitManager.apiStatusInterceptor.intercept(responseCode, null)) {
+                                if (callback != null) {
+                                    callback.onIntercepted(call, null);
+                                }
+                            } else {
+                                if (callback != null) {
+                                    callback.onError(call, responseCode, null);
+                                }
                             }
                         }
                     } else {
-                        if (callback != null) {
-                            callback.onError(call, String.valueOf(response.code()), null);
+                        String responseCode = String.valueOf(response.code());
+                        if (RetrofitManager.apiStatusInterceptor != null
+                                && RetrofitManager.apiStatusInterceptor.intercept(responseCode, null)) {
+                            if (callback != null) {
+                                callback.onIntercepted(call, null);
+                            }
+                        } else {
+                            if (callback != null) {
+                                callback.onError(call, responseCode, null);
+                            }
                         }
                     }
 
@@ -179,9 +194,18 @@ public class AdvancedRetrofitHelper {
             @Override
             public void onFailure(Call<T> call, Throwable t) {
                 if (!call.isCanceled()) {
+                    if (RetrofitManager.apiStatusInterceptor != null
+                            && RetrofitManager.apiStatusInterceptor.intercept(FAILURE, null)) {
+                        if (callback != null) {
+                            callback.onIntercepted(call, null);
+                        }
+                    } else {
+                        if (callback != null) {
+                            callback.onError(call, FAILURE, null);
+                        }
+                    }
                     if (callback != null) {
                         t.printStackTrace();
-                        callback.onError(call, FAILURE, null);
                         callback.onEnd(call);
                     }
                 } else {
