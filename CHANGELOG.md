@@ -1,5 +1,17 @@
 # Change Log
 
+## Version 1.2
+
+*2017-12-21*
+
+* 新增 `onCanceled()` 回调方法，在请求被取消的情况下进行回调，在这种情况下不会在回调其他任意方法
+* 修正在接口没有返回的情况下，`ApiStatusInterceptor#intercep` 没有被调用的问题
+* `BaseResp` 增加 `msgCode` 和 `cacheTime` 两个字段
+* 新增 `onError(Call, BaseResp)` 回调方法，可以获取到新增字段，之前的错误回调暂时保留，后面会废弃
+* `onIntercepted` 回调方法的第二个参数由泛型改为 `BaseResp`
+* `ApiStatusInterceptor#intercept` 方法的参数改为 `BaseResp`
+* 新增错误类型定义类 `ErrorStatus` ，包含 `FAILURE` （失败）和 `NETWORK_UNAVAILABLE` （没有网络）
+
 ## Version 1.1
 
 *2017-12-08*
