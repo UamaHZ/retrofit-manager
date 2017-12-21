@@ -1,11 +1,9 @@
 package cn.com.uama.retrofitmanager.sample.fragment;
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +11,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import cn.com.uama.retrofitmanager.AdvancedRetrofitHelper;
+import cn.com.uama.retrofitmanager.ErrorStatus;
 import cn.com.uama.retrofitmanager.RetrofitManager;
 import cn.com.uama.retrofitmanager.bean.BaseResp;
 import cn.com.uama.retrofitmanager.bean.SimpleResp;
@@ -89,24 +88,34 @@ public class ObservableFragment extends Fragment {
                     }
                 }, new ErrorConsumer() {
                     @Override
-                    public void onError(@NonNull String code, @Nullable String msg) {
-                        if (TextUtils.isEmpty(msg)) {
-                            msg = "获取数据失败";
+                    public void onError(BaseResp resp) {
+                        String status = resp.getStatus();
+                        if (ErrorStatus.NETWORK_UNAVAILABLE.equals(status)) {
+                            infoView.setText("没有网络");
+                        } else {
+                            String msg = resp.getMsg();
+                            if (TextUtils.isEmpty(msg)) {
+                                msg = "获取数据失败";
+                            }
+                            infoView.setText(String.format("%s:%s", status, msg));
                         }
-                        infoView.setText(String.format("%s:%s", code, msg));
                     }
 
                     @Override
                     public void onIntercepted(BaseResp result) {
                         infoView.setText("数据被劫持了!");
-                        try {
-                            SimpleResp<UpdateBean> resp = (SimpleResp<UpdateBean>) result;
-                            UpdateBean data = resp.getData();
-                            if (data != null) {
-                                Log.d(TAG, "被劫持的数据为：" + data.getContent());
+                        // 需要注意唯一能保证的是 status 不为空
+                        String status = result.getStatus();
+                        if (status.equals("100")) {
+                            try {
+                                SimpleResp<UpdateBean> realResp = (SimpleResp<UpdateBean>) result;
+                                UpdateBean data = realResp.getData();
+                                if (data != null) {
+                                    infoView.setText("数据被劫持了：" + data.getContent());
+                                }
+                            } catch (ClassCastException e) {
+                                e.printStackTrace();
                             }
-                        } catch (ClassCastException e) {
-                            e.printStackTrace();
                         }
                     }
                 });

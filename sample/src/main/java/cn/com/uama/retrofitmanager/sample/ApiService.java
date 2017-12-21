@@ -15,12 +15,12 @@ public interface ApiService {
     /**
      * 普通接口定义
      */
-    @GET("/v37/main/getAppVersion")
+    @GET("/main/getAppVersion")
     Call<SimpleResp<UpdateBean>> checkNewVersion(@Query("mtype") String type);
 
     /**
      * RxJava 方式接口定义
      */
-    @GET("/v37/main/getAppVersion")
+    @GET("/main/getAppVersion")
     Observable<SimpleResp<UpdateBean>> checkNewVersionRx(@Query("mtype") String type);
 }

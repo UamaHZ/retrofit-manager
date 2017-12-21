@@ -1,5 +1,6 @@
 package cn.com.uama.retrofitmanager;
 
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
@@ -136,8 +137,7 @@ public class AdvancedRetrofitHelper {
                         if (body != null) {
                             String status = body.getStatus();
                             String msg = body.getMsg();
-                            if (RetrofitManager.apiStatusInterceptor != null
-                                    && RetrofitManager.apiStatusInterceptor.intercept(status, msg)) {
+                            if (Util.isIntercepted(body)) {
                                 if (callback != null) {
                                     callback.onIntercepted(call, body);
                                 }
@@ -149,36 +149,19 @@ public class AdvancedRetrofitHelper {
                                 } else {
                                     if (callback != null) {
                                         callback.onError(call, status, msg);
+                                        callback.onError(call, body);
                                     }
                                 }
                             }
                         } else {
                             // body 为 null 表示 http status code 是 204 或 205
                             // 这种情况下没有服务端定义的状态码值，我们认为获取数据失败
-                            String responseCode = String.valueOf(response.code());
-                            if (RetrofitManager.apiStatusInterceptor != null
-                                    && RetrofitManager.apiStatusInterceptor.intercept(responseCode, null)) {
-                                if (callback != null) {
-                                    callback.onIntercepted(call, null);
-                                }
-                            } else {
-                                if (callback != null) {
-                                    callback.onError(call, responseCode, null);
-                                }
-                            }
+                            String status = String.valueOf(response.code());
+                            onCallError(call, status, callback);
                         }
                     } else {
-                        String responseCode = String.valueOf(response.code());
-                        if (RetrofitManager.apiStatusInterceptor != null
-                                && RetrofitManager.apiStatusInterceptor.intercept(responseCode, null)) {
-                            if (callback != null) {
-                                callback.onIntercepted(call, null);
-                            }
-                        } else {
-                            if (callback != null) {
-                                callback.onError(call, responseCode, null);
-                            }
-                        }
+                        String status = String.valueOf(response.code());
+                        onCallError(call, status, callback);
                     }
 
                     if (callback != null) {
@@ -194,18 +177,15 @@ public class AdvancedRetrofitHelper {
             @Override
             public void onFailure(Call<T> call, Throwable t) {
                 if (!call.isCanceled()) {
-                    if (RetrofitManager.apiStatusInterceptor != null
-                            && RetrofitManager.apiStatusInterceptor.intercept(FAILURE, null)) {
-                        if (callback != null) {
-                            callback.onIntercepted(call, null);
-                        }
-                    } else {
-                        if (callback != null) {
-                            callback.onError(call, FAILURE, null);
-                        }
+                    String status = ErrorStatus.FAILURE;
+                    if (t instanceof ConnectException) {
+                        // 如果异常为 ConnectException ，认为是没有网络
+                        status = ErrorStatus.NETWORK_UNAVAILABLE;
                     }
+
+                    onCallError(call, status, callback);
+
                     if (callback != null) {
-                        t.printStackTrace();
                         callback.onEnd(call);
                     }
                 } else {
@@ -215,6 +195,20 @@ public class AdvancedRetrofitHelper {
                 }
             }
         });
+    }
+
+    private static <T extends BaseResp> void onCallError(Call<T> call, String status, AdvancedRetrofitCallback<T> callback) {
+        BaseResp errorResp = Util.createErrorResp(status);
+        if (Util.isIntercepted(errorResp)) {
+            if (callback != null) {
+                callback.onIntercepted(call, errorResp);
+            }
+        } else {
+            if (callback != null) {
+                callback.onError(call, status, null);
+                callback.onError(call, errorResp);
+            }
+        }
     }
 
     public static <T extends BaseResp> ObservableTransformer<T, T> rxObservableTransformer(Object key) {
@@ -245,8 +239,7 @@ public class AdvancedRetrofitHelper {
                         .map(new Function<T, T>() {
                             @Override
                             public T apply(T t) throws Exception {
-                                if (RetrofitManager.apiStatusInterceptor != null &&
-                                        RetrofitManager.apiStatusInterceptor.intercept(t.getStatus(), t.getMsg())) {
+                                if (Util.isIntercepted(t)) {
                                     throw new ResultInterceptedException(t);
                                 }
                                 return t;
@@ -256,9 +249,8 @@ public class AdvancedRetrofitHelper {
                             @Override
                             public T apply(@NonNull T t) throws Exception {
                                 String status = t.getStatus();
-                                String msg = t.getMsg();
                                 if(!SUCCESS.equals(status)){
-                                    throw new ApiException(status, msg);
+                                    throw new ApiException(t);
                                 }
                                 return t;
                             }

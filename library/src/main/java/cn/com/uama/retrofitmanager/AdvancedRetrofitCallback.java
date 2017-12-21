@@ -1,5 +1,6 @@
 package cn.com.uama.retrofitmanager;
 
+import cn.com.uama.retrofitmanager.bean.BaseResp;
 import retrofit2.Call;
 
 /**
@@ -28,15 +29,24 @@ public interface AdvancedRetrofitCallback<T> {
     void onError(Call<T> call, String errorCode, String msg);
 
     /**
+     * 接口访问失败时的回调方法
+     *
+     * @param call 接口请求对象
+     * @param baseResp 包含错误信息的 {@link BaseResp} 对象
+     * @since 1.2
+     */
+    void onError(Call<T> call, BaseResp baseResp);
+
+    /**
      * 接口返回数据被“劫持”时的回调，
-     * 被“劫持”表示 {@link ApiStatusInterceptor#intercept(String, String)} 方法返回 true 。
+     * 被“劫持”表示 {@link ApiStatusInterceptor#intercept(cn.com.uama.retrofitmanager.bean.BaseResp)} 方法返回 true 。
      *
      * 增加这个回调方法的目的是在这种情况下给使用者一个机会处理特定逻辑。
      *
      * @param call 接口请求对象
-     * @param resp 数据实体
+     * @param resp 数据实体，如果接口访问成功，可以将 resp 强转为具体的实体类，否则 resp 只包含一个 status
      */
-    void onIntercepted(Call<T> call, T resp);
+    void onIntercepted(Call<T> call, BaseResp resp);
 
     /**
      * 接口请求结束时的回调，在没有被取消的情况下都会走该方法。

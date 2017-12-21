@@ -1,5 +1,6 @@
 package cn.com.uama.retrofitmanager;
 
+import cn.com.uama.retrofitmanager.bean.BaseResp;
 import retrofit2.Call;
 
 /**
@@ -21,7 +22,12 @@ public class SimpleRetrofitCallback<T> implements AdvancedRetrofitCallback<T> {
     }
 
     @Override
-    public void onIntercepted(Call<T> call, T resp) {
+    public void onError(Call<T> call, BaseResp baseResp) {
+        // do nothing
+    }
+
+    @Override
+    public void onIntercepted(Call<T> call, BaseResp resp) {
         // do nothing
     }
 

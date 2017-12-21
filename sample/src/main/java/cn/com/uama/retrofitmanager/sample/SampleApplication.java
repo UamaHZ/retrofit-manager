@@ -2,6 +2,7 @@ package cn.com.uama.retrofitmanager.sample;
 
 import android.app.Application;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.util.Collections;
 import java.util.List;
@@ -9,11 +10,13 @@ import java.util.List;
 import javax.net.ssl.X509TrustManager;
 
 import cn.com.uama.retrofitmanager.ApiStatusInterceptor;
+import cn.com.uama.retrofitmanager.ErrorStatus;
 import cn.com.uama.retrofitmanager.HttpsHelper;
 import cn.com.uama.retrofitmanager.OkHttpConfiguration;
 import cn.com.uama.retrofitmanager.RetrofitManager;
 import cn.com.uama.retrofitmanager.RetrofitProvider;
 import cn.com.uama.retrofitmanager.SimpleOkHttpConfiguration;
+import cn.com.uama.retrofitmanager.bean.BaseResp;
 import okhttp3.Interceptor;
 
 /**
@@ -74,7 +77,8 @@ public class SampleApplication extends Application implements RetrofitProvider {
     public ApiStatusInterceptor provideApiStatusInterceptor() {
         return new ApiStatusInterceptor() {
             @Override
-            public boolean intercept(String status, String message) {
+            public boolean intercept(BaseResp resp) {
+                String status = resp.getStatus();
                 // 在这里对某种 status 进行统一处理
                 if ("102".equals(status)) {
                     // 处理逻辑
@@ -82,6 +86,8 @@ public class SampleApplication extends Application implements RetrofitProvider {
 
                     // 如果不想数据继续流向本身的回调方法，返回 true
                     return true;
+                } else if (ErrorStatus.NETWORK_UNAVAILABLE.equals(status)) {
+                    Toast.makeText(SampleApplication.this, "没有网络连接", Toast.LENGTH_LONG).show();
                 }
                 return false;
             }
