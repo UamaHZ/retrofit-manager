@@ -7,8 +7,14 @@ package cn.com.uama.retrofitmanager.bean;
  */
 
 public class BaseResp {
+    // 状态码
     private String status;
+    // 提示信息
     private String msg;
+    // 消息码
+    private String msgCode;
+    // 缓存时间，单位为秒
+    private String cacheTime;
 
     public String getStatus() {
         return status;
@@ -24,5 +30,21 @@ public class BaseResp {
 
     public void setMsg(String msg) {
         this.msg = msg;
+    }
+
+    public String getMsgCode() {
+        return msgCode;
+    }
+
+    public void setMsgCode(String msgCode) {
+        this.msgCode = msgCode;
+    }
+
+    public String getCacheTime() {
+        return cacheTime;
+    }
+
+    public void setCacheTime(String cacheTime) {
+        this.cacheTime = cacheTime;
     }
 }
