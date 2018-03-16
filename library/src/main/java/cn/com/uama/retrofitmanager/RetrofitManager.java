@@ -15,6 +15,7 @@ import javax.net.ssl.X509TrustManager;
 
 import cn.com.uama.retrofitmanager.bean.BaseResp;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.Cache;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
@@ -38,6 +39,7 @@ public class RetrofitManager {
 
     private static Retrofit retrofit;
     private static OkHttpClient client;
+    private static Cache cache;
     public static void init(RetrofitProvider provider) {
         if (retrofit != null) {
             Log.w(TAG, "RetrofitManager already initialized!");
@@ -47,6 +49,7 @@ public class RetrofitManager {
             throw new IllegalArgumentException("RetrofitProvider must NOT be null!");
         }
         apiStatusInterceptor = provider.provideApiStatusInterceptor();
+        cache = provider.provideCache();
         client = buildClient(provider.provideOkHttpConfig());
         retrofit = new Retrofit.Builder()
                 .baseUrl(provider.provideBaseUrl())

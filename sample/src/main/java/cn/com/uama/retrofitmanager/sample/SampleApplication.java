@@ -17,6 +17,7 @@ import cn.com.uama.retrofitmanager.RetrofitManager;
 import cn.com.uama.retrofitmanager.RetrofitProvider;
 import cn.com.uama.retrofitmanager.SimpleOkHttpConfiguration;
 import cn.com.uama.retrofitmanager.bean.BaseResp;
+import okhttp3.Cache;
 import okhttp3.Interceptor;
 
 /**
@@ -92,5 +93,10 @@ public class SampleApplication extends Application implements RetrofitProvider {
                 return false;
             }
         };
+    }
+
+    @Override
+    public Cache provideCache() {
+        return null;
     }
 }

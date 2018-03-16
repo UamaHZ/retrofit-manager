@@ -131,6 +131,12 @@ public class AdvancedRetrofitHelper {
         call.enqueue(new Callback<T>() {
             @Override
             public void onResponse(Call<T> call, Response<T> response) {
+                boolean needRefresh = Boolean.parseBoolean(response.headers().get("Need-Refresh"));
+                if (needRefresh) {
+                    // TODO: 2018/3/16 20:02 怎么增加强制从接口获取数据的标识？ （李炜）
+                    Call<T> networkCall = call.clone();
+                    enqueueCall(networkCall, callback);
+                }
                 if (!call.isCanceled()) {
                     if (response.isSuccessful()) {
                         T body = response.body();
