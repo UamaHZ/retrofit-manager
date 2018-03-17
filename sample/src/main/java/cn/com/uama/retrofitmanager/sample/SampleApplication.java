@@ -4,6 +4,7 @@ import android.app.Application;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
@@ -12,12 +13,12 @@ import javax.net.ssl.X509TrustManager;
 import cn.com.uama.retrofitmanager.ApiStatusInterceptor;
 import cn.com.uama.retrofitmanager.ErrorStatus;
 import cn.com.uama.retrofitmanager.HttpsHelper;
+import cn.com.uama.retrofitmanager.LMCache;
 import cn.com.uama.retrofitmanager.OkHttpConfiguration;
 import cn.com.uama.retrofitmanager.RetrofitManager;
 import cn.com.uama.retrofitmanager.RetrofitProvider;
 import cn.com.uama.retrofitmanager.SimpleOkHttpConfiguration;
 import cn.com.uama.retrofitmanager.bean.BaseResp;
-import okhttp3.Cache;
 import okhttp3.Interceptor;
 
 /**
@@ -96,7 +97,7 @@ public class SampleApplication extends Application implements RetrofitProvider {
     }
 
     @Override
-    public Cache provideCache() {
-        return null;
+    public LMCache provideCache() {
+        return new LMCache(new File(getCacheDir(), "http"));
     }
 }

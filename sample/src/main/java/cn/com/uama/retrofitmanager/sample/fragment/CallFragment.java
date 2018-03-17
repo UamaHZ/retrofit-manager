@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import cn.com.uama.retrofitmanager.AdvancedRetrofitHelper;
 import cn.com.uama.retrofitmanager.ErrorStatus;
@@ -50,6 +51,26 @@ public class CallFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 checkNewVersion();
+            }
+        });
+        view.findViewById(R.id.button_clear_cache).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 同步清除缓存
+                // RetrofitManager.clearCache();
+                // 异步清除缓存
+                RetrofitManager.clearCacheAsync(new RetrofitManager.ClearCacheCallback() {
+                    @Override
+                    public void onComplete(boolean result) {
+                        String resultStr = result ? "缓存清除成功" : "缓存清除失败";
+                        Toast.makeText(getContext(), resultStr, Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                        Toast.makeText(getContext(), "发生错误", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
         TextView titleView = view.findViewById(R.id.title_view);

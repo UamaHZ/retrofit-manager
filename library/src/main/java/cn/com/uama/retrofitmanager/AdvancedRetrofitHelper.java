@@ -1,5 +1,6 @@
 package cn.com.uama.retrofitmanager;
 
+import java.lang.reflect.Field;
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +19,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.Request;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -123,19 +125,20 @@ public class AdvancedRetrofitHelper {
         if (shouldAddCall) {
             addCall(key, call);
         }
-        enqueueCall(call, callback);
+        enqueueCall(key, call, callback, shouldAddCall);
     }
 
-    private static <T extends BaseResp> void enqueueCall(Call<T> call,
-                                                         final AdvancedRetrofitCallback<T> callback) {
+    private static <T extends BaseResp> void enqueueCall(final Object key,
+                                                         Call<T> call,
+                                                         final AdvancedRetrofitCallback<T> callback,
+                                                         final boolean shouldAddCall) {
         call.enqueue(new Callback<T>() {
             @Override
             public void onResponse(Call<T> call, Response<T> response) {
+                // 判断是否需要从接口获取最新数据（缓存失效了）
                 boolean needRefresh = Boolean.parseBoolean(response.headers().get("Need-Refresh"));
                 if (needRefresh) {
-                    // TODO: 2018/3/16 20:02 怎么增加强制从接口获取数据的标识？ （李炜）
-                    Call<T> networkCall = call.clone();
-                    enqueueCall(networkCall, callback);
+                    scheduleARefreshCall(key, call, callback, shouldAddCall);
                 }
                 if (!call.isCanceled()) {
                     if (response.isSuccessful()) {
@@ -215,6 +218,29 @@ public class AdvancedRetrofitHelper {
                 callback.onError(call, errorResp);
             }
         }
+    }
+
+    /**
+     * 发送一个直接访问网络接口的请求
+     */
+    private static <T extends BaseResp> void scheduleARefreshCall(
+            Object key, Call<T> call,
+            AdvancedRetrofitCallback<T> callback,
+            final boolean shouldAddCall) {
+        Call<T> networkCall = call.clone();
+        Request request = networkCall.request();
+        // 通过反射的方式将 request 对象的 tag 属性设为 “Refresh”
+        // 然后在缓存拦截器中通过判断 request 的 tag 是否为 “Refresh” 来判断是否直接请求接口
+        if (request != null) {
+            try {
+                Field tagField = request.getClass().getDeclaredField("tag");
+                tagField.setAccessible(true);
+                tagField.set(request, "Refresh");
+            } catch (NoSuchFieldException ignored) {
+            } catch (IllegalAccessException ignored) {
+            }
+        }
+        enqueue(key, networkCall, callback, shouldAddCall);
     }
 
     public static <T extends BaseResp> ObservableTransformer<T, T> rxObservableTransformer(Object key) {

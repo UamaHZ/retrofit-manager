@@ -6,6 +6,7 @@ import com.uama.retrofit.converter.gson.LMGsonConverterFactory;
 
 import java.security.GeneralSecurityException;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
@@ -14,8 +15,10 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import cn.com.uama.retrofitmanager.bean.BaseResp;
+import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
-import okhttp3.Cache;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
@@ -39,7 +42,8 @@ public class RetrofitManager {
 
     private static Retrofit retrofit;
     private static OkHttpClient client;
-    private static Cache cache;
+    private static LMCache cache;
+
     public static void init(RetrofitProvider provider) {
         if (retrofit != null) {
             Log.w(TAG, "RetrofitManager already initialized!");
@@ -61,6 +65,7 @@ public class RetrofitManager {
 
     /**
      * 获取 OKHttpClient 对象，方便其他地方复用
+     *
      * @return RetrofitManager 使用的 OkHttpClient 对象，如果 RetrofitManager 还未初始化，则为 null
      */
     public static OkHttpClient getOkHttpClient() {
@@ -93,7 +98,7 @@ public class RetrofitManager {
                 SSLSocketFactory sslSocketFactory;
                 try {
                     SSLContext sslContext = SSLContext.getInstance("TLS");
-                    sslContext.init(null, new TrustManager[] { trustManager }, null);
+                    sslContext.init(null, new TrustManager[]{trustManager}, null);
                     sslSocketFactory = sslContext.getSocketFactory();
                 } catch (GeneralSecurityException e) {
                     throw new RuntimeException(e);
@@ -109,6 +114,8 @@ public class RetrofitManager {
             // 写入超时
             clientBuilder.writeTimeout(DEFAULT_WRITE_TIMEOUT, TimeUnit.SECONDS);
         }
+        // 增加缓存处理拦截器
+        clientBuilder.addInterceptor(new LMCacheInterceptor(cache));
         return clientBuilder.build();
     }
 
@@ -120,5 +127,53 @@ public class RetrofitManager {
             throw new IllegalStateException("RetrofitManager not initialized! Call RetrofitManager.init() in your custom application class!");
         }
         return retrofit.create(service);
+    }
+
+    /**
+     * 同步清除缓存
+     */
+    public static boolean clearCache() {
+        if (cache != null) {
+            return cache.clear();
+        }
+        return false;
+    }
+
+    /**
+     * 异步清除缓存回调接口
+     */
+    public interface ClearCacheCallback {
+        void onComplete(boolean result);
+        void onError(Throwable t);
+    }
+
+    /**
+     * 异步清除缓存
+     * @param callback
+     */
+    public static void clearCacheAsync(final ClearCacheCallback callback) {
+        Single.fromCallable(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                return clearCache();
+            }
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Boolean>() {
+                    @Override
+                    public void accept(Boolean result) throws Exception {
+                        if (callback != null) {
+                            callback.onComplete(result);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        if (callback != null) {
+                            callback.onError(throwable);
+                        }
+                    }
+                });
     }
 }

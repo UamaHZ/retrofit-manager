@@ -1,7 +1,5 @@
 package cn.com.uama.retrofitmanager;
 
-import okhttp3.Cache;
-
 /**
  * Created by liwei on 2017/4/18 10:23
  * Email: liwei@uama.com.cn
@@ -27,5 +25,5 @@ public interface RetrofitProvider {
     /**
      * 提供缓存配置
      */
-    Cache provideCache();
+    LMCache provideCache();
 }
