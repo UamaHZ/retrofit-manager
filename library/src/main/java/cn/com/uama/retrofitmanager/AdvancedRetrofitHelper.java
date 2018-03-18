@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.WeakHashMap;
 
 import cn.com.uama.retrofitmanager.bean.BaseResp;
+import cn.com.uama.retrofitmanager.cache.LMCacheInterceptor;
 import cn.com.uama.retrofitmanager.exception.ApiException;
 import cn.com.uama.retrofitmanager.exception.ResultInterceptedException;
 import io.reactivex.Observable;
@@ -136,7 +137,8 @@ public class AdvancedRetrofitHelper {
             @Override
             public void onResponse(Call<T> call, Response<T> response) {
                 // 判断是否需要从接口获取最新数据（缓存失效了）
-                boolean needRefresh = Boolean.parseBoolean(response.headers().get("Need-Refresh"));
+                boolean needRefresh = Boolean.parseBoolean(
+                        response.headers().get(LMCacheInterceptor.NEED_REFRESH_HEADER));
                 if (needRefresh) {
                     scheduleARefreshCall(key, call, callback, shouldAddCall);
                 }
@@ -235,7 +237,7 @@ public class AdvancedRetrofitHelper {
             try {
                 Field tagField = request.getClass().getDeclaredField("tag");
                 tagField.setAccessible(true);
-                tagField.set(request, "Refresh");
+                tagField.set(request, LMCacheInterceptor.REFRESH_FROM_SERVER);
             } catch (NoSuchFieldException ignored) {
             } catch (IllegalAccessException ignored) {
             }

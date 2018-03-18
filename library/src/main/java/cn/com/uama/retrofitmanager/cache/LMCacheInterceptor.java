@@ -1,11 +1,14 @@
-package cn.com.uama.retrofitmanager;
+package cn.com.uama.retrofitmanager.cache;
 
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import java.io.IOException;
 
+import cn.com.uama.retrofitmanager.AdvancedRetrofitHelper;
+import cn.com.uama.retrofitmanager.RetrofitManager;
 import cn.com.uama.retrofitmanager.bean.BaseResp;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
@@ -23,20 +26,22 @@ public class LMCacheInterceptor implements Interceptor {
 
     private static final MediaType jsonType = MediaType.parse("application/json;charset=UTF-8");
 
-    private final LMCache cache;
+    public static final String REFRESH_FROM_SERVER = "refresh_from_server";
+    public static final String NEED_REFRESH_HEADER = "Need-Refresh";
+
+    private final LMInternalCache cache;
     private final Gson gson;
 
-    public LMCacheInterceptor(LMCache cache) {
+    public LMCacheInterceptor(LMInternalCache cache) {
         this.cache = cache;
         this.gson = new Gson();
     }
 
     @Override
     public Response intercept(Chain chain) throws IOException {
-        // 判断是否是直接从接口获取的请求
+        // 判断是否是需要直接从接口获取数据的请求
         Request request = chain.request();
-        boolean refresh = "Refresh".equals(request.tag());
-        if (refresh) {
+        if (REFRESH_FROM_SERVER.equals(request.tag())) {
             return proceed(chain);
         }
 
@@ -45,12 +50,10 @@ public class LMCacheInterceptor implements Interceptor {
                 ? cache.get(request)
                 : null;
 
-        // 判断缓存是否有缓存
+        // 判断是否有缓存
         if (!TextUtils.isEmpty(cacheCandidate)) {
-            // 有缓存，先将其返回
-            // 判断缓存是否有效
-            // 有效不需要做任何操作
-
+            // 有缓存
+            // 构造缓存数据的 Response 对象
             Response.Builder responseBuilder = new Response.Builder()
                     .request(request)
                     .protocol(Protocol.HTTP_1_1)
@@ -58,55 +61,58 @@ public class LMCacheInterceptor implements Interceptor {
                     .message("OK")
                     .body(ResponseBody.create(jsonType, cacheCandidate));
 
-            // 失效的话要从网络进行获取
+            // 根据 cacheTime 判断缓存是否已经失效
             BaseResp baseResp = parseBaseResp(cacheCandidate);
             if (baseResp != null) {
                 long cacheTime = -1L;
                 try {
                     cacheTime = Long.parseLong(baseResp.getCacheTime());
-                } catch (NumberFormatException e) {
-                    e.printStackTrace();
+                } catch (NumberFormatException ignored) {
                 }
 
                 if (!cache.isValid(request, cacheTime)) {
-                    responseBuilder.addHeader("Need-Refresh", "true");
+                    // 缓存失效的话要从网络进行获取最新的数据
+                    responseBuilder.addHeader(NEED_REFRESH_HEADER, "true");
                 }
             }
 
+            // 将缓存数据返回
             return responseBuilder
                     .build();
         }
 
+        // 没有缓存，从接口请求数据
         return proceed(chain);
     }
 
+    /**
+     * 从接口请求数据，并根据 cacheTime 和 status 字段判断是否要缓存返回的数据
+     */
     private Response proceed(Chain chain) throws IOException {
+        // 从接口获取最新数据
         Response networkResponse = chain.proceed(chain.request());
-        // 从新获取到的数据中获取 cacheTime ，判断是否需要缓存
-        // 如果不需要的话要将旧的缓存也删除
+
         ResponseBody body = networkResponse.body();
         String bodyStr = body.string();
         BaseResp baseResp = parseBaseResp(bodyStr);
-        if (baseResp != null) {
+        // 先判断是否是成功状态的数据，不成功的数据不缓存
+        if (baseResp != null && AdvancedRetrofitHelper.SUCCESS.equals(baseResp.getStatus())) {
             long cacheTime = -1L;
             try {
                 cacheTime = Long.parseLong(baseResp.getCacheTime());
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
+            } catch (NumberFormatException ignored) {
             }
+
             if (cacheTime == 0) {
                 // 表示不缓存，同时删除旧数据
                 if (cache != null) {
                     cache.remove(chain.request());
                 }
             } else if (cacheTime > 0) {
-                // 缓存时间大于 0
-                // 还要根据 status 判断是否进行缓存
-                if (AdvancedRetrofitHelper.SUCCESS.equals(baseResp.getStatus()) && cache != null) {
+                // 缓存时间大于 0 则将其缓存
+                if (cache != null) {
                     cache.put(chain.request(), bodyStr);
                 }
-            } else {
-                // 表示出现异常，不缓存新数据，但同时不删除旧数据
             }
         }
 
@@ -117,12 +123,16 @@ public class LMCacheInterceptor implements Interceptor {
     }
 
     /**
-     * 将 ResponseBody 转换为 BaseResp
+     * 将返回数据转换为 BaseResp
      *
-     * @param body
+     * @param body 字符串格式的返回数据
      */
-    private BaseResp parseBaseResp(String body) throws IOException {
+    private BaseResp parseBaseResp(String body) {
         if (body == null) return null;
-        return gson.fromJson(body, BaseResp.class);
+        try {
+            return gson.fromJson(body, BaseResp.class);
+        } catch (JsonSyntaxException ignored) {
+        }
+        return null;
     }
 }

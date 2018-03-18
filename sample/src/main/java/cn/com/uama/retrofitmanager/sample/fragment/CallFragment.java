@@ -112,7 +112,7 @@ public class CallFragment extends Fragment {
                     public void onError(Call<SimpleResp<UpdateBean>> call, BaseResp baseResp) {
                         String status = baseResp.getStatus();
                         if (ErrorStatus.NETWORK_UNAVAILABLE.equals(status)) {
-                            infoView.setText("没有网络");
+//                            infoView.setText("没有网络");
                         } else {
                             String msg = baseResp.getMsg();
                             if (TextUtils.isEmpty(msg)) {

@@ -15,6 +15,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import cn.com.uama.retrofitmanager.bean.BaseResp;
+import cn.com.uama.retrofitmanager.cache.LMCacheInterceptor;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
@@ -114,8 +115,10 @@ public class RetrofitManager {
             // 写入超时
             clientBuilder.writeTimeout(DEFAULT_WRITE_TIMEOUT, TimeUnit.SECONDS);
         }
-        // 增加缓存处理拦截器
-        clientBuilder.addInterceptor(new LMCacheInterceptor(cache));
+        if (cache != null) {
+            // 增加缓存处理拦截器
+            clientBuilder.addInterceptor(new LMCacheInterceptor(cache.internalCache));
+        }
         return clientBuilder.build();
     }
 
