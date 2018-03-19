@@ -179,4 +179,15 @@ public class RetrofitManager {
                     }
                 });
     }
+
+    /**
+     * 设置缓存 id ，这个 id 被用作缓存的子目录
+     *
+     * @param id 缓存 id，典型地，应该是当前登录用户 id
+     */
+    public static void setCacheId(String id) {
+        if (cache != null) {
+            cache.setId(id);
+        }
+    }
 }

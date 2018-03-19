@@ -4,7 +4,6 @@ import android.app.Application;
 import android.util.Log;
 import android.widget.Toast;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
@@ -98,6 +97,10 @@ public class SampleApplication extends Application implements RetrofitProvider {
 
     @Override
     public LMCache provideCache() {
-        return new LMCache(new File(getCacheDir(), "http"));
+
+        // 实际的业务代码中应该用类似下面的方式获取 userId
+        // String userId = PreferenceUtils.getUserId(context);
+        String userId = null;
+        return new LMCache(this, BuildConfig.VERSION_NAME, userId);
     }
 }

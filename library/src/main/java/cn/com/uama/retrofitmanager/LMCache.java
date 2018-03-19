@@ -1,9 +1,15 @@
 package cn.com.uama.retrofitmanager;
 
+import android.content.Context;
+import android.text.TextUtils;
+
 import java.io.File;
 import java.io.IOException;
 
 import cn.com.uama.retrofitmanager.cache.LMInternalCache;
+import io.reactivex.Completable;
+import io.reactivex.functions.Action;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.Cache;
 import okhttp3.Request;
 import okhttp3.internal.http.HttpMethod;
@@ -18,13 +24,20 @@ import okio.Okio;
  */
 public class LMCache {
 
-    private final File cacheDir;
+    private static final String ROOT_DIR_NAME = "api_cache";
 
-    public LMCache(File cacheDir) {
-        this.cacheDir = cacheDir;
-        if (cacheDir != null && !cacheDir.exists()) {
-            cacheDir.mkdirs();
-        }
+    // /data/data/{包名}/cache/api_cache
+    private File rootDir;
+    // /data/data/{包名}/cache/api_cache/{version}
+    private File versionDir;
+    // /data/data/{包名}/cache/api_cache/{version}/{id}
+    private File cacheDir;
+
+    public LMCache(Context context, String version, String id) {
+        rootDir = new File(context.getCacheDir(), ROOT_DIR_NAME);
+
+        setVersion(version);
+        setId(id);
     }
 
     final LMInternalCache internalCache = new LMInternalCache() {
@@ -53,6 +66,117 @@ public class LMCache {
             return LMCache.this.clear();
         }
     };
+
+    private void setVersion(String version) {
+        if (TextUtils.isEmpty(version)) {
+            throw new IllegalArgumentException("LMCache version cant not be empty!");
+        }
+
+        // 更新 version 目录
+        versionDir = new File(rootDir, version);
+        // 删除其他版本的缓存目录，为了防止卡顿采用异步的方式
+        deleteOtherVersionDirsAsync(version);
+    }
+
+    /**
+     * 异步删除其他版本的缓存目录
+     *
+     * @param currentVersion 当前的版本号
+     */
+    private void deleteOtherVersionDirsAsync(final String currentVersion) {
+        Completable.fromAction(new Action() {
+            @Override
+            public void run() throws Exception {
+                deleteOtherVersionDirs(currentVersion);
+            }
+        })
+                .subscribeOn(Schedulers.io())
+                .subscribe();
+    }
+
+    /**
+     * 删除其他版本的缓存目录
+     *
+     * @param currentVersion 当前的版本号
+     */
+    private void deleteOtherVersionDirs(String currentVersion) {
+        File[] files = rootDir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                // 当前版本目录
+                if (file.isDirectory() && currentVersion.equals(file.getName())) continue;
+                deleteDir(file);
+            }
+        }
+    }
+
+    /**
+     * 根据 id 设置当前缓存目录
+     * 如果 id 为空，缓存目录为版本号目录，否则为版本号目录下的子目录
+     *
+     * @param id 用户标识
+     */
+    void setId(String id) {
+        // 判断当前的缓存目录是否是版本号目录
+        String lastId = null;
+        if (cacheDir != null
+                && cacheDir.exists()
+                && cacheDir.getParentFile().equals(versionDir)) {
+            lastId = cacheDir.getName();
+        }
+
+        if (!TextUtils.isEmpty(id)) {
+            // 新 id 不为空
+            if (!id.equals(lastId)) {
+                // 新老 id 不相同，清除之前的缓存
+                deleteOtherIdDirsAsync(id);
+
+                // 设置对应新 id 的缓存目录
+                cacheDir = new File(versionDir, id);
+            }
+        } else {
+            // 新 id 为空
+            if (!TextUtils.isEmpty(lastId)) {
+                // 老 id 不为空，清除之前的缓存
+                deleteOtherIdDirsAsync(id);
+            }
+            // 将当前缓存目录设置为版本号目录
+            cacheDir = versionDir;
+        }
+
+        if (!cacheDir.exists()) cacheDir.mkdirs();
+    }
+
+    /**
+     * 异步删除版本目录下的文件和其他 id 缓存的目录
+     *
+     * @param currentId 当前 id
+     */
+    private void deleteOtherIdDirsAsync(final String currentId) {
+        Completable.fromAction(new Action() {
+            @Override
+            public void run() throws Exception {
+                deleteOtherIdDirs(currentId);
+            }
+        })
+                .subscribeOn(Schedulers.io())
+                .subscribe();
+    }
+
+    /**
+     * 删除版本目录下的文件和其他 id 缓存的目录
+     *
+     * @param currentId 当前 id
+     */
+    private void deleteOtherIdDirs(String currentId) {
+        File[] files = versionDir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory() && file.getName().equals(currentId)) continue;
+                deleteDir(file);
+            }
+        }
+    }
 
     /**
      * 判断缓存目录是否有效
@@ -94,11 +218,11 @@ public class LMCache {
                 } catch (IOException ignored) {
                 }
             }
-       }
+        }
     }
 
     /**
-     *  移除对应请求的缓存
+     * 移除对应请求的缓存
      */
     boolean remove(Request request) {
         File cacheFile = getCacheFileFor(request);
@@ -157,6 +281,7 @@ public class LMCache {
     }
 
     private boolean deleteDir(File dir) {
+        if (dir == null) return false;
         if (dir.exists() && dir.isDirectory()) {
             File[] files = dir.listFiles();
             if (files != null) {

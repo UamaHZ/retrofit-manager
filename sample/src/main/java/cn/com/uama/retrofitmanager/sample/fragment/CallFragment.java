@@ -73,6 +73,18 @@ public class CallFragment extends Fragment {
                 });
             }
         });
+        view.findViewById(R.id.button_clear_id).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                RetrofitManager.setCacheId(null);
+            }
+        });
+        view.findViewById(R.id.button_set_id).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                RetrofitManager.setCacheId("44");
+            }
+        });
         TextView titleView = view.findViewById(R.id.title_view);
         titleView.setText("普通方式访问接口：");
 
