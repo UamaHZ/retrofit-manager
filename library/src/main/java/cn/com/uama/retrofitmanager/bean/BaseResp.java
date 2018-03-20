@@ -15,6 +15,8 @@ public class BaseResp {
     private String msgCode;
     // 缓存时间，单位为秒
     private String cacheTime;
+    // 是否来自缓存
+    private boolean fromCache;
 
     public String getStatus() {
         return status;
@@ -46,5 +48,13 @@ public class BaseResp {
 
     public void setCacheTime(String cacheTime) {
         this.cacheTime = cacheTime;
+    }
+
+    public boolean isFromCache() {
+        return fromCache;
+    }
+
+    public void setFromCache(boolean fromCache) {
+        this.fromCache = fromCache;
     }
 }

@@ -101,9 +101,10 @@ public class CallFragment extends Fragment {
                 new SimpleRetrofitCallback<SimpleResp<UpdateBean>>() {
                     @Override
                     public void onSuccess(Call<SimpleResp<UpdateBean>> call, SimpleResp<UpdateBean> resp) {
+                        boolean fromCache = resp.isFromCache();
                         UpdateBean updateBean = resp.getData();
                         if (updateBean != null) {
-                            infoView.setText(updateBean.getContent());
+                            infoView.setText((fromCache ? "来自缓存：" : "来自接口：") + updateBean.getContent());
                         } else {
                             infoView.setText("update bean 为 null");
                         }

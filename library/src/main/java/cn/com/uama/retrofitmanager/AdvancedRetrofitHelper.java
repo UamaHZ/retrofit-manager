@@ -138,14 +138,19 @@ public class AdvancedRetrofitHelper {
             public void onResponse(Call<T> call, Response<T> response) {
                 // 判断是否需要从接口获取最新数据（缓存失效了）
                 boolean needRefresh = Boolean.parseBoolean(
-                        response.headers().get(LMCacheInterceptor.NEED_REFRESH_HEADER));
+                        response.headers().get(LMCacheInterceptor.HEADER_NEED_REFRESH));
                 if (needRefresh) {
                     scheduleARefreshCall(key, call, callback, shouldAddCall);
                 }
+                // 判断返回数据是否是缓存数据
+                boolean fromCache = Boolean.parseBoolean(
+                        response.headers().get(LMCacheInterceptor.HEADER_FROM_CACHE));
                 if (!call.isCanceled()) {
                     if (response.isSuccessful()) {
                         T body = response.body();
                         if (body != null) {
+                            body.setFromCache(fromCache);
+
                             String status = body.getStatus();
                             String msg = body.getMsg();
                             if (Util.isIntercepted(body)) {

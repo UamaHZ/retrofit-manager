@@ -29,7 +29,8 @@ public class LMCacheInterceptor implements Interceptor {
     private static final MediaType jsonType = MediaType.parse("application/json;charset=UTF-8");
 
     public static final String REFRESH_FROM_SERVER = "refresh_from_server";
-    public static final String NEED_REFRESH_HEADER = "Need-Refresh";
+    public static final String HEADER_NEED_REFRESH = "Need-Refresh";
+    public static final String HEADER_FROM_CACHE = "From-Cache";
     private static final String QUERY_CUR_PAGE = "curPage";
 
     private final LMInternalCache cache;
@@ -75,12 +76,13 @@ public class LMCacheInterceptor implements Interceptor {
 
                 if (!cache.isValid(request, cacheTime)) {
                     // 缓存失效的话要从网络进行获取最新的数据
-                    responseBuilder.addHeader(NEED_REFRESH_HEADER, "true");
+                    responseBuilder.addHeader(HEADER_NEED_REFRESH, "true");
                 }
             }
 
             // 将缓存数据返回
             return responseBuilder
+                    .header(HEADER_FROM_CACHE, "true")
                     .build();
         }
 
