@@ -100,7 +100,7 @@ public class SampleApplication extends Application implements RetrofitProvider {
 
         // 实际的业务代码中应该用类似下面的方式获取 userId
         // String userId = PreferenceUtils.getUserId(context);
-        String userId = null;
+        String userId = "";
         return new LMCache(this, BuildConfig.VERSION_NAME, userId);
     }
 }

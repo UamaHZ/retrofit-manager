@@ -4,6 +4,7 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 
 import cn.com.uama.retrofitmanager.cache.LMInternalCache;
@@ -169,10 +170,15 @@ public class LMCache {
      * @param currentId 当前 id
      */
     private void deleteOtherIdDirs(String currentId) {
-        File[] files = versionDir.listFiles();
+        File[] files = versionDir.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+                return pathname.isDirectory();
+            }
+        });
         if (files != null) {
             for (File file : files) {
-                if (file.isDirectory() && file.getName().equals(currentId)) continue;
+                if (file.getName().equals(currentId)) continue;
                 deleteDir(file);
             }
         }
