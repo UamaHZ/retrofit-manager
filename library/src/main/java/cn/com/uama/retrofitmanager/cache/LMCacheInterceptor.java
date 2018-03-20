@@ -6,10 +6,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Set;
 
 import cn.com.uama.retrofitmanager.AdvancedRetrofitHelper;
-import cn.com.uama.retrofitmanager.RetrofitManager;
 import cn.com.uama.retrofitmanager.bean.BaseResp;
+import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Protocol;
@@ -28,6 +30,7 @@ public class LMCacheInterceptor implements Interceptor {
 
     public static final String REFRESH_FROM_SERVER = "refresh_from_server";
     public static final String NEED_REFRESH_HEADER = "Need-Refresh";
+    private static final String QUERY_CUR_PAGE = "curPage";
 
     private final LMInternalCache cache;
     private final Gson gson;
@@ -89,8 +92,9 @@ public class LMCacheInterceptor implements Interceptor {
      * 从接口请求数据，并根据 cacheTime 和 status 字段判断是否要缓存返回的数据
      */
     private Response proceed(Chain chain) throws IOException {
+        Request request = chain.request();
         // 从接口获取最新数据
-        Response networkResponse = chain.proceed(chain.request());
+        Response networkResponse = chain.proceed(request);
 
         ResponseBody body = networkResponse.body();
         String bodyStr = body.string();
@@ -106,12 +110,24 @@ public class LMCacheInterceptor implements Interceptor {
             if (cacheTime == 0) {
                 // 表示不缓存，同时删除旧数据
                 if (cache != null) {
-                    cache.remove(chain.request());
+                    cache.remove(request);
                 }
             } else if (cacheTime > 0) {
-                // 缓存时间大于 0 则将其缓存
-                if (cache != null) {
-                    cache.put(chain.request(), bodyStr);
+                // 缓存时间大于 0
+
+                boolean shouldCache = true;
+                // 如果是分页接口，并且 curPage 不等于 1 则不缓存（只缓存第一页数据）
+                HttpUrl url = request.url();
+                Set<String> queryNames = url.queryParameterNames();
+                if (queryNames.contains(QUERY_CUR_PAGE)) {
+                    List<String> curPageValues = url.queryParameterValues(QUERY_CUR_PAGE);
+                    if (curPageValues.size() > 0 && !"1".equals(curPageValues.get(0))) {
+                        // 如果不是第一页则不缓存
+                        shouldCache = false;
+                    }
+                }
+                if (shouldCache && cache != null) {
+                    cache.put(request, bodyStr);
                 }
             }
         }
