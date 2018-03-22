@@ -74,10 +74,13 @@ public class LMCache {
             throw new IllegalArgumentException("LMCache version cant not be empty!");
         }
 
+        // 将版本号进行 MD5 加密
+        String encodedVersion = md5Hex(version);
+
         // 更新 version 目录
-        versionDir = new File(rootDir, version);
+        versionDir = new File(rootDir, encodedVersion);
         // 删除其他版本的缓存目录，为了防止卡顿采用异步的方式
-        deleteOtherVersionDirsAsync(version);
+        deleteOtherVersionDirsAsync(encodedVersion);
     }
 
     /**
@@ -129,7 +132,7 @@ public class LMCache {
 
         if (!TextUtils.isEmpty(id)) {
             // 对 id 进行 MD5 加密
-            String realId = ByteString.encodeUtf8(id).md5().hex();
+            String realId = md5Hex(id);
             // 新 id 不为空
             if (!realId.equals(lastId)) {
                 // 新老 id 不相同，清除之前的缓存
@@ -149,6 +152,11 @@ public class LMCache {
         }
 
         if (!cacheDir.exists()) cacheDir.mkdirs();
+    }
+
+    private String md5Hex(String s) {
+        if (TextUtils.isEmpty(s)) return s;
+        return ByteString.encodeUtf8(s).md5().hex();
     }
 
     /**
