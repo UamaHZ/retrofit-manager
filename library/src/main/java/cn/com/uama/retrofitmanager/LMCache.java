@@ -16,6 +16,7 @@ import okhttp3.Request;
 import okhttp3.internal.http.HttpMethod;
 import okio.BufferedSink;
 import okio.BufferedSource;
+import okio.ByteString;
 import okio.Okio;
 
 /**
@@ -127,13 +128,15 @@ public class LMCache {
         }
 
         if (!TextUtils.isEmpty(id)) {
+            // 对 id 进行 MD5 加密
+            String realId = ByteString.encodeUtf8(id).md5().hex();
             // 新 id 不为空
-            if (!id.equals(lastId)) {
+            if (!realId.equals(lastId)) {
                 // 新老 id 不相同，清除之前的缓存
-                deleteOtherIdDirsAsync(id);
+                deleteOtherIdDirsAsync(realId);
 
                 // 设置对应新 id 的缓存目录
-                cacheDir = new File(versionDir, id);
+                cacheDir = new File(versionDir, realId);
             }
         } else {
             // 新 id 为空
