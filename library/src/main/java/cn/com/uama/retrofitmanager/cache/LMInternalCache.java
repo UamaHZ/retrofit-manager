@@ -1,6 +1,9 @@
 package cn.com.uama.retrofitmanager.cache;
 
+import java.io.IOException;
+
 import okhttp3.Request;
+import okio.BufferedSource;
 
 /**
  * Created by liwei on 2018/3/19 00:00
@@ -23,6 +26,15 @@ public interface LMInternalCache {
      * @return 缓存数据
      */
     String get(Request request);
+
+    /**
+     * 获取对应请求缓存的 BufferedSource 对象
+     *
+     * @param request okhttp 请求对象
+     * @return 缓存数据的 BufferedSource 对象
+     * @throws IOException 异常
+     */
+    BufferedSource getBufferedSource(Request request) throws IOException;
 
     /**
      * 移除对应请求的缓存

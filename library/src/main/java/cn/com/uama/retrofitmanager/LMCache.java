@@ -5,6 +5,7 @@ import android.text.TextUtils;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import cn.com.uama.retrofitmanager.cache.LMInternalCache;
@@ -51,6 +52,11 @@ public class LMCache {
         @Override
         public String get(Request request) {
             return LMCache.this.get(request);
+        }
+
+        @Override
+        public BufferedSource getBufferedSource(Request request) throws IOException {
+            return LMCache.this.getBufferedSource(request);
         }
 
         @Override
@@ -265,6 +271,17 @@ public class LMCache {
                     }
                 }
             }
+        }
+        return null;
+    }
+
+    /**
+     * 获取对应请求缓存的 BufferedSource 对象
+     */
+    BufferedSource getBufferedSource(Request request) throws FileNotFoundException {
+        File cachedFile = getCacheFileFor(request);
+        if (cachedFile != null && cachedFile.exists()) {
+            return Okio.buffer(Okio.source(cachedFile));
         }
         return null;
     }

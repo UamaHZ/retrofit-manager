@@ -1,9 +1,7 @@
 package cn.com.uama.retrofitmanager.cache;
 
-import android.text.TextUtils;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
+import com.squareup.moshi.JsonAdapter;
+import com.squareup.moshi.Moshi;
 
 import java.io.IOException;
 import java.util.List;
@@ -18,6 +16,7 @@ import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import okio.BufferedSource;
 
 /**
  * Created by liwei on 2018/3/16 10:06
@@ -34,11 +33,11 @@ public class LMCacheInterceptor implements Interceptor {
     private static final String QUERY_CUR_PAGE = "curPage";
 
     private final LMInternalCache cache;
-    private final Gson gson;
+    private final JsonAdapter<BaseResp> baseRespJsonAdapter;
 
     public LMCacheInterceptor(LMInternalCache cache) {
         this.cache = cache;
-        this.gson = new Gson();
+        this.baseRespJsonAdapter = new Moshi.Builder().build().adapter(BaseResp.class);
     }
 
     @Override
@@ -50,23 +49,25 @@ public class LMCacheInterceptor implements Interceptor {
         }
 
         // 从缓存获取数据
-        String cacheCandidate = cache != null
-                ? cache.get(request)
+        BufferedSource cacheBufferedSource = cache != null
+                ? cache.getBufferedSource(request)
                 : null;
 
         // 判断是否有缓存
-        if (!TextUtils.isEmpty(cacheCandidate)) {
+        if (cacheBufferedSource != null) {
             // 有缓存
             // 构造缓存数据的 Response 对象
+            ResponseBody body = ResponseBody.create(jsonType, -1, cacheBufferedSource);
             Response.Builder responseBuilder = new Response.Builder()
                     .request(request)
                     .protocol(Protocol.HTTP_1_1)
                     .code(200)
                     .message("OK")
-                    .body(ResponseBody.create(jsonType, cacheCandidate));
+                    .body(body);
 
             // 根据 cacheTime 判断缓存是否已经失效
-            BaseResp baseResp = parseBaseResp(cacheCandidate);
+            BaseResp baseResp = baseRespJsonAdapter
+                    .fromJson(cache.getBufferedSource(request));
             if (baseResp != null) {
                 long cacheTime = -1L;
                 try {
@@ -99,6 +100,8 @@ public class LMCacheInterceptor implements Interceptor {
         Response networkResponse = chain.proceed(request);
 
         ResponseBody body = networkResponse.body();
+        if (body == null) return networkResponse;
+
         String bodyStr = body.string();
         BaseResp baseResp = parseBaseResp(bodyStr);
         // 先判断是否是成功状态的数据，不成功的数据不缓存
@@ -145,12 +148,8 @@ public class LMCacheInterceptor implements Interceptor {
      *
      * @param body 字符串格式的返回数据
      */
-    private BaseResp parseBaseResp(String body) {
+    private BaseResp parseBaseResp(String body) throws IOException {
         if (body == null) return null;
-        try {
-            return gson.fromJson(body, BaseResp.class);
-        } catch (JsonSyntaxException ignored) {
-        }
-        return null;
+        return baseRespJsonAdapter.fromJson(body);
     }
 }
