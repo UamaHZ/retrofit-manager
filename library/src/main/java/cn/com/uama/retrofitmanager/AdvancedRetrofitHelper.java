@@ -1,6 +1,5 @@
 package cn.com.uama.retrofitmanager;
 
-import java.lang.reflect.Field;
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +19,6 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
-import okhttp3.Request;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -140,6 +138,7 @@ public class AdvancedRetrofitHelper {
                 boolean needRefresh = Boolean.parseBoolean(
                         response.headers().get(LMCacheInterceptor.HEADER_NEED_REFRESH));
                 if (needRefresh) {
+                    // 需要获取最新数据，再发送一次请求
                     scheduleARefreshCall(key, call, callback, shouldAddCall);
                 }
                 // 判断返回数据是否是缓存数据
@@ -234,20 +233,7 @@ public class AdvancedRetrofitHelper {
             Object key, Call<T> call,
             AdvancedRetrofitCallback<T> callback,
             final boolean shouldAddCall) {
-        Call<T> networkCall = call.clone();
-        Request request = networkCall.request();
-        // 通过反射的方式将 request 对象的 tag 属性设为 “Refresh”
-        // 然后在缓存拦截器中通过判断 request 的 tag 是否为 “Refresh” 来判断是否直接请求接口
-        if (request != null) {
-            try {
-                Field tagField = request.getClass().getDeclaredField("tag");
-                tagField.setAccessible(true);
-                tagField.set(request, LMCacheInterceptor.REFRESH_FROM_SERVER);
-            } catch (NoSuchFieldException ignored) {
-            } catch (IllegalAccessException ignored) {
-            }
-        }
-        enqueue(key, networkCall, callback, shouldAddCall);
+        enqueue(key, call.clone(), callback, shouldAddCall);
     }
 
     public static <T extends BaseResp> ObservableTransformer<T, T> rxObservableTransformer(Object key) {

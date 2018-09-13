@@ -27,7 +27,6 @@ public class LMCacheInterceptor implements Interceptor {
 
     private static final MediaType jsonType = MediaType.parse("application/json;charset=UTF-8");
 
-    public static final String REFRESH_FROM_SERVER = "refresh_from_server";
     public static final String HEADER_NEED_REFRESH = "Need-Refresh";
     public static final String HEADER_FROM_CACHE = "From-Cache";
     private static final String QUERY_CUR_PAGE = "curPage";
@@ -42,12 +41,7 @@ public class LMCacheInterceptor implements Interceptor {
 
     @Override
     public Response intercept(Chain chain) throws IOException {
-        // 判断是否是需要直接从接口获取数据的请求
         Request request = chain.request();
-        if (REFRESH_FROM_SERVER.equals(request.tag())) {
-            return proceed(chain);
-        }
-
         // 从缓存获取数据
         BufferedSource cacheBufferedSource = cache != null
                 ? cache.getBufferedSource(request)
@@ -56,8 +50,15 @@ public class LMCacheInterceptor implements Interceptor {
         // 判断是否有缓存
         if (cacheBufferedSource != null) {
             // 有缓存
+            // 判断是否是需要直接从接口获取数据的请求
+            if (cache.needRefresh(request)) {
+                cache.removeNeedRefresh(request);
+                return proceed(chain);
+            }
+
             // 构造缓存数据的 Response 对象
-            ResponseBody body = ResponseBody.create(jsonType, -1, cacheBufferedSource);
+            ResponseBody body = ResponseBody.create(jsonType, -1,
+                    cache.getBufferedSource(request));
             Response.Builder responseBuilder = new Response.Builder()
                     .request(request)
                     .protocol(Protocol.HTTP_1_1)
@@ -77,13 +78,15 @@ public class LMCacheInterceptor implements Interceptor {
 
                 if (!cache.isValid(request, cacheTime)) {
                     // 缓存失效的话要从网络进行获取最新的数据
-                    responseBuilder.addHeader(HEADER_NEED_REFRESH, "true");
+                    responseBuilder.addHeader(HEADER_NEED_REFRESH, Boolean.toString(true));
+                    // 将本次请求对应的缓存数据设置为需要从接口刷新
+                    cache.setNeedRefresh(request);
                 }
             }
 
             // 将缓存数据返回
             return responseBuilder
-                    .header(HEADER_FROM_CACHE, "true")
+                    .header(HEADER_FROM_CACHE, Boolean.toString(true))
                     .build();
         }
 

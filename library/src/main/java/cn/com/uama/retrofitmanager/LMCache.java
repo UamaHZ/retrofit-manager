@@ -7,6 +7,9 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import cn.com.uama.retrofitmanager.cache.LMInternalCache;
 import io.reactivex.Completable;
@@ -35,6 +38,8 @@ public class LMCache {
     private File versionDir;
     // /data/data/{包名}/cache/api_cache/{version}/{id}
     private File cacheDir;
+    // 保存需要从接口刷新数据的缓存的 key
+    private Set<String> needRefreshSet = Collections.synchronizedSet(new HashSet<String>());
 
     public LMCache(Context context, String version, String id) {
         rootDir = new File(context.getCacheDir(), ROOT_DIR_NAME);
@@ -67,6 +72,21 @@ public class LMCache {
         @Override
         public boolean isValid(Request request, long cacheTime) {
             return LMCache.this.isValid(request, cacheTime);
+        }
+
+        @Override
+        public boolean needRefresh(Request request) {
+            return LMCache.this.needRefresh(request);
+        }
+
+        @Override
+        public void setNeedRefresh(Request request) {
+            LMCache.this.setNeedRefresh(request);
+        }
+
+        @Override
+        public void removeNeedRefresh(Request request) {
+            LMCache.this.removeNeedRefresh(request);
         }
 
         @Override
@@ -226,6 +246,8 @@ public class LMCache {
             return;
         }
 
+        // 移除对应请求缓存需要刷新的标志
+        removeNeedRefresh(request);
         File cacheFile = getCacheFileFor(request);
         if (cacheFile == null) return;
 
@@ -248,6 +270,8 @@ public class LMCache {
      * 移除对应请求的缓存
      */
     boolean remove(Request request) {
+        // 移除对应请求需要刷新的标志
+        removeNeedRefresh(request);
         File cacheFile = getCacheFileFor(request);
         return cacheFile != null && cacheFile.exists() && cacheFile.delete();
     }
@@ -297,20 +321,59 @@ public class LMCache {
     }
 
     /**
+     * 查询请求对象对应的缓存数据是否需要从接口刷新
+     *
+     * @param request okhttp 请求对象
+     * @return 需要返回 true，否则返回 false
+     */
+    boolean needRefresh(Request request) {
+        String cacheKey = cacheKey(request);
+        return needRefreshSet.contains(cacheKey);
+    }
+
+    /**
+     * 将请求对象对应的缓存数据设置为需要从接口刷新
+     *
+     * @param request okhttp 请求对象
+     */
+    void setNeedRefresh(Request request) {
+        needRefreshSet.add(cacheKey(request));
+    }
+
+    /**
+     * 移除请求对象对应缓存数据的需要从接口刷新标志
+     *
+     * @param request okhttp 请求对象
+     */
+    void removeNeedRefresh(Request request) {
+        needRefreshSet.remove(cacheKey(request));
+    }
+
+    /**
      * 获取对应请求的缓存文件对象
      */
     private File getCacheFileFor(Request request) {
         if (request == null) return null;
         if (isCacheDirInvalid()) return null;
 
-        String key = Cache.key(request.url());
-        return new File(cacheDir, key + ".lmc");
+        return new File(cacheDir, cacheKey(request) + ".lmc");
+    }
+
+    /**
+     * 获取对应请求的缓存文件名称
+     *
+     * @param request 请求对象
+     */
+    private String cacheKey(Request request) {
+        return Cache.key(request.url());
     }
 
     /**
      * 清除缓存
      */
     boolean clear() {
+        // 清除所有的缓存数据刷新标志
+        needRefreshSet.clear();
         return !isCacheDirInvalid() && deleteDir(cacheDir);
     }
 

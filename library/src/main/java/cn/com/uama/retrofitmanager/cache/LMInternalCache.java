@@ -47,11 +47,33 @@ public interface LMInternalCache {
     /**
      * 判断对应请求的缓存是否有效
      *
-     * @param request   okhttp 对象
+     * @param request   okhttp 请求对象
      * @param cacheTime 缓存时间
      * @return 有效为 true，否则为 false
      */
     boolean isValid(Request request, long cacheTime);
+
+    /**
+     * 查询请求对象对应的缓存数据是否需要从接口刷新
+     *
+     * @param request okhttp 请求对象
+     * @return 需要返回 true，否则返回 false
+     */
+    boolean needRefresh(Request request);
+
+    /**
+     * 将请求对象对应的缓存数据设置为需要从接口刷新
+     *
+     * @param request okhttp 请求对象
+     */
+    void setNeedRefresh(Request request);
+
+    /**
+     * 移除请求对象对应缓存数据的需要从接口刷新标志
+     *
+     * @param request okhttp 请求对象
+     */
+    void removeNeedRefresh(Request request);
 
     /**
      * 清除所有缓存
