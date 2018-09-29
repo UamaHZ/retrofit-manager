@@ -9,3 +9,6 @@
 .externalNativeBuild
 /.idea/caches
 /.idea/codeStyles/Project.xml
+/.idea/misc.xml
+/.idea/gradle.xml
+/.idea/runConfigurations.xml
