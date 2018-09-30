@@ -2,10 +2,14 @@ package cn.com.uama.retrofitmanager.rx.adapter;
 
 import java.lang.reflect.Type;
 
+import cn.com.uama.retrofitmanager.bean.BaseResp;
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Observable;
+import io.reactivex.plugins.RxJavaPlugins;
 import retrofit2.Call;
 import retrofit2.CallAdapter;
 
-final class LMRxJava2CallAdapter<R> implements CallAdapter<R, Object> {
+final class LMRxJava2CallAdapter<R extends BaseResp> implements CallAdapter<R, Object> {
     private final Type responseType;
     private final boolean isFlowable;
     private final boolean isSingle;
@@ -28,6 +32,20 @@ final class LMRxJava2CallAdapter<R> implements CallAdapter<R, Object> {
 
     @Override
     public Object adapt(Call<R> call) {
-        return null;
+        Observable<R> responseObservable = new LMResponseObservable<>(call);
+
+        if (isFlowable) {
+            return responseObservable.toFlowable(BackpressureStrategy.LATEST);
+        }
+        if (isSingle) {
+            return responseObservable.singleOrError();
+        }
+        if (isMaybe) {
+            return responseObservable.singleElement();
+        }
+        if (isCompletable) {
+            return responseObservable.ignoreElements();
+        }
+        return RxJavaPlugins.onAssembly(responseObservable);
     }
 }

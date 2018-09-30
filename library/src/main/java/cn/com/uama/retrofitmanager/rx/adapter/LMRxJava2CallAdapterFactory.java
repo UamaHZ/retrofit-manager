@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
+import cn.com.uama.retrofitmanager.bean.BaseResp;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
@@ -34,7 +35,6 @@ public final class LMRxJava2CallAdapterFactory extends CallAdapter.Factory {
             return null;
         }
 
-        Type responseType;
         if (!(returnType instanceof ParameterizedType)) {
             String name = isFlowable ? "Flowable"
                     : isSingle ? "Single"
@@ -43,7 +43,11 @@ public final class LMRxJava2CallAdapterFactory extends CallAdapter.Factory {
                     + " as " + name + "<Foo> or " + name + "<? extends Foo>");
         }
 
-        responseType = getParameterUpperBound(0, (ParameterizedType) returnType);
+        Type responseType = getParameterUpperBound(0, (ParameterizedType) returnType);
+        if (!(BaseResp.class.isAssignableFrom(getRawType(responseType)))) {
+            // 如果返回值类型不是 BaseResp 或其子类则这个 adapter 不处理
+            return null;
+        }
 
         return new LMRxJava2CallAdapter(responseType, isFlowable, isSingle, isMaybe,
                 false);

@@ -18,10 +18,10 @@
         android:background="@android:color/black"
         android:layout_height="1dp" />
 
-    <!--<fragment-->
-        <!--android:id="@+id/observable"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="0dp"-->
-        <!--android:layout_weight="1"-->
-        <!--android:name="cn.com.uama.retrofitmanager.sample.fragment.ObservableFragment" />-->
+    <fragment
+        android:id="@+id/observable"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:name="cn.com.uama.retrofitmanager.sample.fragment.ObservableFragment" />
 </LinearLayout>

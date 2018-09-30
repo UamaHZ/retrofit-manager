@@ -16,6 +16,7 @@ import javax.net.ssl.X509TrustManager;
 
 import cn.com.uama.retrofitmanager.bean.BaseResp;
 import cn.com.uama.retrofitmanager.cache.LMCacheInterceptor;
+import cn.com.uama.retrofitmanager.rx.adapter.LMRxJava2CallAdapterFactory;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
@@ -59,6 +60,7 @@ public class RetrofitManager {
         retrofit = new Retrofit.Builder()
                 .baseUrl(provider.provideBaseUrl())
                 .addConverterFactory(LMGsonConverterFactory.create(BaseResp.class))
+                .addCallAdapterFactory(LMRxJava2CallAdapterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
                 .client(client)
                 .build();

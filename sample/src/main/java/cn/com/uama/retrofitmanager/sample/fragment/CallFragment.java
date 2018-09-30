@@ -27,75 +27,20 @@ import retrofit2.Call;
  * Email: liwei@uama.com.cn
  * Description: 使用普通 Call 访问接口的示例
  */
-public class CallFragment extends Fragment {
+public class CallFragment extends BaseFragment {
 
     private static final String TAG = "CallFragment";
-
-    private ApiService apiService;
-    private TextView infoView;
-
-    private ProgressBar progressBar;
-
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_sample, container, false);
-    }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        infoView = view.findViewById(R.id.info_view);
-        progressBar = view.findViewById(R.id.progressBar);
-        view.findViewById(R.id.button_refresh).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                checkNewVersion();
-            }
-        });
-        view.findViewById(R.id.button_clear_cache).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // 同步清除缓存
-                // RetrofitManager.clearCache();
-                // 异步清除缓存
-                RetrofitManager.clearCacheAsync(new RetrofitManager.ClearCacheCallback() {
-                    @Override
-                    public void onComplete(boolean result) {
-                        String resultStr = result ? "缓存清除成功" : "缓存清除失败";
-                        Toast.makeText(getContext(), resultStr, Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onError(Throwable t) {
-                        Toast.makeText(getContext(), "发生错误", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        });
-        view.findViewById(R.id.button_clear_id).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                RetrofitManager.setCacheId(null);
-            }
-        });
-        view.findViewById(R.id.button_set_id).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                RetrofitManager.setCacheId("44");
-            }
-        });
-        TextView titleView = view.findViewById(R.id.title_view);
         titleView.setText("普通方式访问接口：");
-
-        apiService = RetrofitManager.createService(ApiService.class);
-        checkNewVersion();
     }
 
     /**
      * 普通方式访问接口
      */
-    private void checkNewVersion() {
+    void checkNewVersion() {
         progressBar.setVisibility(View.VISIBLE);
         AdvancedRetrofitHelper.enqueue(this, apiService.checkNewVersion("android-wuguan"),
                 new SimpleRetrofitCallback<SimpleResp<UpdateBean>>() {
@@ -160,16 +105,5 @@ public class CallFragment extends Fragment {
                         }
                     }
                 });
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-
-        // 仅取消普通方式接口访问
-        AdvancedRetrofitHelper.cancelCalls(this);
-
-        // 把普通方式和 RxJava 形式的接口访问都取消
-        // AdvancedRetrofitHelper.releaseResourcesFor(this);
     }
 }

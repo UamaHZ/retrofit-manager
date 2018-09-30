@@ -27,43 +27,20 @@ import io.reactivex.functions.Consumer;
  * Email: liwei@uama.com.cn
  * Description: 使用 RxJava 访问接口的示例
  */
-public class ObservableFragment extends Fragment {
+public class ObservableFragment extends BaseFragment {
 
     private static final String TAG = "ObservableFragment";
-
-    private ApiService apiService;
-    private TextView infoView;
-
-    private ProgressBar progressBar;
-
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_sample, container, false);
-    }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        infoView = view.findViewById(R.id.info_view);
-        progressBar = view.findViewById(R.id.progressBar);
-        view.findViewById(R.id.button_refresh).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                checkNewVersionRx();
-            }
-        });
-        TextView titleView = view.findViewById(R.id.title_view);
         titleView.setText("RxJava 方式访问接口：");
-
-        apiService = RetrofitManager.createService(ApiService.class);
-        checkNewVersionRx();
     }
 
     /**
      * 通过 RxJava 访问接口
      */
-    private void checkNewVersionRx() {
+    void checkNewVersion() {
         progressBar.setVisibility(View.VISIBLE);
         apiService.checkNewVersionRx("android-wuguan")
                 .compose(AdvancedRetrofitHelper.<SimpleResp<UpdateBean>>rxObservableTransformer(this))
@@ -79,9 +56,10 @@ public class ObservableFragment extends Fragment {
                 .subscribe(new Consumer<SimpleResp<UpdateBean>>() {
                     @Override
                     public void accept(SimpleResp<UpdateBean> resp) throws Exception {
+                        boolean fromCache = resp.isFromCache();
                         UpdateBean updateBean = resp.getData();
                         if (updateBean != null) {
-                            infoView.setText(updateBean.getContent());
+                            infoView.setText((fromCache ? "来自缓存：" : "来自接口：") + updateBean.getContent());
                         } else {
                             infoView.setText("update bean 为 null");
                         }
@@ -119,16 +97,5 @@ public class ObservableFragment extends Fragment {
                         }
                     }
                 });
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-
-        // 仅取消 RxJava 接口访问
-        AdvancedRetrofitHelper.disposeDisposables(this);
-
-        // 把普通方式和 RxJava 形式的接口访问都取消
-        // AdvancedRetrofitHelper.releaseResourcesFor(this);
     }
 }
