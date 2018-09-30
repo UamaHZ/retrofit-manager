@@ -1,5 +1,19 @@
 # Change Log
 
+## Version 1.4
+
+*2018-09-30*
+
+* 升级 gradle wrapper 版本到 4.6，AGP 版本到 3.2.0
+* 升级 Retrofit 到 2.4.0，OkHttp 到 3.11.0，RxJava 到 2.2.2，RxAndroid 到 2.1.0
+* 升级 Android 编译版本和目标版本到 28
+* 修改缓存失效后从接口重新请求一次新数据的实现方式，因为 okhttp 升级到 3.11.0 之后之前的实现方式有问题
+* 新增通过 RxJava 请求接口对缓存逻辑的支持
+
+## Version 1.3
+
+Sorry, 1.3 版本不小心搞丢了。
+
 ## Version 1.2
 
 *2017-12-21*
