@@ -102,6 +102,9 @@ public class LMCacheInterceptor implements Interceptor {
         // 从接口获取最新数据
         Response networkResponse = chain.proceed(request);
 
+        // 如果接口请求不成功，直接返回
+        if (!networkResponse.isSuccessful()) return networkResponse;
+
         ResponseBody body = networkResponse.body();
         if (body == null) return networkResponse;
 
