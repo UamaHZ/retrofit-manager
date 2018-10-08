@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 1.4.1
+
+*2018-10-08*
+
+* 完善：在缓存拦截器中直接向服务器发起请求时，如果请求结果不成功（`networkResponse.isSuccessful()` 为 `false`）则直接返回 `networkResponse` 对象
+
 ## Version 1.4
 
 *2018-09-30*
