@@ -6,6 +6,7 @@ import cn.com.uama.retrofitmanager.bean.BaseResp;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Observable;
 import io.reactivex.plugins.RxJavaPlugins;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.CallAdapter;
 
@@ -33,6 +34,8 @@ final class LMRxJava2CallAdapter<R extends BaseResp> implements CallAdapter<R, O
     @Override
     public Object adapt(Call<R> call) {
         Observable<R> responseObservable = new LMResponseObservable<>(call);
+
+        responseObservable = responseObservable.subscribeOn(Schedulers.io());
 
         if (isFlowable) {
             return responseObservable.toFlowable(BackpressureStrategy.LATEST);
