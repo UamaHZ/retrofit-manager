@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 1.4.2
+
+*2018-11-08*
+
+* 优化：通过 `LMRxJava2CallAdapter` 适配(adapt)得到的 `Observable` 对象默认订阅在(`subscribeOn`)在 IO 线程上
+
 ## Version 1.4.1
 
 *2018-10-08*
